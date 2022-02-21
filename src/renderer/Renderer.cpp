@@ -57,6 +57,11 @@ PhotometryRenderer::PhotometryRenderer()
         "optixLaunchParams";
 }
 
+/**
+ * @brief 
+ * @param 
+ * 
+ */
 void
 PhotometryRenderer::setup()
 {

@@ -3,19 +3,26 @@
 
 #include <chameleon_renderer/utils/math_utils.hpp>
 namespace chameleon {
-enum LightType { SPOT, POINT, DIRECT };
+enum LightType
+{
+    SPOT,
+    POINT,
+    DIRECT
+};
 
-struct CudaLight {
+struct CudaLight
+{
     LightType l_type;
     vec3f position;
     vec3f direction;
     float intensity;
 };
 
-struct CudaLightArray {
+struct CudaLightArray
+{
     CudaLight* data;
     size_t count;
 };
 
-}  // namespace chameleon
-#endif  // CUDALIGHT_H
+} // namespace chameleon
+#endif // CUDALIGHT_H

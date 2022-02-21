@@ -1,6 +1,7 @@
-
-
 #include <chameleon_renderer/optix/OptixContext.hpp>
+
+#include <chameleon_renderer/utils/optix_device_utils.hpp>
+#include <chameleon_renderer/utils/terminal_utils.hpp>
 
 namespace chameleon {
 

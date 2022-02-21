@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.2)
 
-set(CMAKE_CXX_COMPILER /bin/g++-8)
-set(CMAKE_C_COMPILER /bin/gcc-8)
+option(DEFAULT_COMPILER "Use gcc-8 g++-8" ON)
+
+if(DEFAULT_COMPILER)
+  set(CMAKE_CXX_COMPILER /bin/g++-8)
+  set(CMAKE_C_COMPILER /bin/gcc-8)
+endif(DEFAULT_COMPILER)
 
 project(OptixRender)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "--std=c++17 -Wextra -Wno-missing-field-initializers")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wextra -Wno-missing-field-initializers")
 set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -16,8 +20,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 find_package(OptiX REQUIRED VERSION 7.2)
 
 # ------------------------------------------------------------------
-# first, include gdt project to do some general configuration stuff (build
-# modes, glut, optix, etc)
+# include used cmake functions
 # ------------------------------------------------------------------
 include(${CMAKE_MODULE_PATH}/configure_build_type.cmake)
 include(${CMAKE_MODULE_PATH}/configure_cuda.cmake)
@@ -25,7 +28,7 @@ include(${CMAKE_MODULE_PATH}/nvcuda_compile_ptx.cmake)
 mark_as_advanced(CUDA_SDK_ROOT_DIR)
 
 # ------------------------------------------------------------------
-# import gdt submodule
+# add gdt
 # ------------------------------------------------------------------
 set(gdt_dir ${PROJECT_SOURCE_DIR}/thirdparty/gdt)
 add_subdirectory(${gdt_dir} EXCLUDE_FROM_ALL)
@@ -44,6 +47,7 @@ file( GLOB SHADERS_DEPENDENCY_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/shade
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(nlohmann_json REQUIRED)
+add_subdirectory(thirdparty/glm)
 
 # file(GLOB_RECURSE SCENE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/scene/*.cpp")
 # file(GLOB_RECURSE RENDERER_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer/*.cpp")
@@ -56,6 +60,7 @@ add_library(${PROJECT_NAME} ${OPTRENDER_SOURCES})
 target_include_directories(
   ${PROJECT_NAME} PUBLIC ${gdt_dir} ${OptiX_INCLUDE} ${OpenCV_INCLUDE_DIRS}
                          include thirdparty)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 target_link_libraries(
   ${PROJECT_NAME}
@@ -66,9 +71,10 @@ target_link_libraries(
          ${OpenCV_LIBS}
          Eigen3::Eigen
          nlohmann_json::nlohmann_json
-         ${OPENGL_gl_LIBRARY})
+         ${OPENGL_gl_LIBRARY}
+         glm::glm )
 
-target_compile_options(${PROJECT_NAME}
+target_compile_options(${PROJECT_NAME} PUBLIC
                        INTERFACE -Wno-missing-field-initializers)
 
 add_subdirectory(examples)

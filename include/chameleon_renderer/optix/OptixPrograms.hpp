@@ -11,14 +11,23 @@
 #include "OptixScene.hpp"
 
 namespace chameleon {
-enum class ProgramType { RAYGEN, MISS, CLOSEST_HIT, ANY_HIT, INTERSECT };
-void base_program_create(OptixProgramGroupKind group_kind,
-                         const std::string& entryFunctionName,
-                         OptixModule module,
-                         OptixProgramGroup* PG,
-                         OptixProgramGroupOptions pgOptions = {});
+enum class ProgramType
+{
+    RAYGEN,
+    MISS,
+    CLOSEST_HIT,
+    ANY_HIT,
+    INTERSECT
+};
+void
+base_program_create(OptixProgramGroupKind group_kind,
+                    const std::string& entryFunctionName,
+                    OptixModule module,
+                    OptixProgramGroup* PG,
+                    OptixProgramGroupOptions pgOptions = {});
 
-struct OptixPrograms {
+struct OptixPrograms
+{
     std::vector<OptixProgramGroup> raygenPGs;
     CUDABuffer raygenRecordsBuffer;
 
@@ -49,4 +58,4 @@ struct OptixPrograms {
 
     void buildSBT(const OptixStaticScene& scene);
 };
-}  // namespace chameleon
+} // namespace chameleon

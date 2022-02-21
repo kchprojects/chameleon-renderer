@@ -5,7 +5,8 @@
 #include <chameleon_renderer/utils/math_utils.hpp>
 
 namespace chameleon {
-struct TriangleMeshSBTData {
+struct TriangleMeshSBTData
+{
     vec3f color;
     vec3f* vertex;
     vec3f* normal;
@@ -15,4 +16,4 @@ struct TriangleMeshSBTData {
     bool hasTexture;
     cudaTextureObject_t texture;
 };
-}  // namespace chameleon
+} // namespace chameleon
