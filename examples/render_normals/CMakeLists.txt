@@ -9,7 +9,7 @@ set(SHADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/raygen.cu)
 
 # set(SHADERS_DEPENDENCIES
-# ${CMAKE_CURRENT_SOURCE_DIR}/include/shader_utils/common.h
+# ${CMAKE_CURRENT_SOURCE_DIR}/include/shader_utils/common.cuh
 # ${CMAKE_CURRENT_SOURCE_DIR}/include/shader_utils/PerRayData.h )
 
 # message( "found optix include : ${OptiX_INCLUDE}") message( "PTX output:

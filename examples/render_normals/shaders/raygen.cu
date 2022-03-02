@@ -1,5 +1,5 @@
 #include <chameleon_renderer/cuda/RayType.h>
-#include <chameleon_renderer/shader_utils/common.h>
+#include <chameleon_renderer/shader_utils/common.cuh>
 
 namespace chameleon {
 //------------------------------------------------------------------------------

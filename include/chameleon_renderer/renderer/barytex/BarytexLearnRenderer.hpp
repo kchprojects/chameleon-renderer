@@ -1,16 +1,16 @@
 #pragma once
 #include <chameleon_renderer/renderer/Renderer.hpp>
-#include <chameleon_renderer/renderer/RendererLayers.hpp>
+#include <chameleon_renderer/renderer/RenderLayers.hpp>
 #include <chameleon_renderer/cuda/LaunchParams.h>
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 
 namespace chameleon {
 
 struct BarytexLearnRenderer : Renderer {
-    using launch_params_t = barycentric_learn_renderer::LaunchParams;
+    using launch_params_t = barycentric_learn_render::LaunchParams;
 
     struct OutputData {
-        VectorLayer<MeasurementHit> mesurements;
+        VectorLayer<MeasurementHit> measurements;
         //metadata ? 
 
         void resize(size_t maximum_hitcount);

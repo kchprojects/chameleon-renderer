@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chameleon_renderer/utils/optix7.h>
+#include <chameleon_renderer/utils/optix7.hpp>
 // common std stuff
 #include <assert.h>
 

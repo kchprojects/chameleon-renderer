@@ -1,19 +1,13 @@
-#include <chameleon_renderer/cuda/CUDABuffer.h>
-
 #include <chameleon_renderer/renderer/barytex/BarytexLearnRenderer.hpp>
 
 namespace chameleon {
-void BarytexLearnRenderer::OutputLayers::resize(size_t maximum_hitcount) {
-    mesurements.resize(maximum_hitcount);
+void BarytexLearnRenderer::OutputData::resize(size_t maximum_hitcount) {
+    measurements.resize(maximum_hitcount);
 }
 
-void BarytexLearnRenderer::OutputLayers::clear() { mesurements.clear(); }
+void BarytexLearnRenderer::OutputData::clear() { measurements.clear(); }
 
-void BarytexLearnRenderer::InputLayers::resize(size_t width, height) {
-    captured_image.resize(width, height);
-}
-
-void BarytexLearnRenderer::InputLayers::upload_source_images(
+void BarytexLearnRenderer::InputData::upload_source_images(
     std::vector<cv::Mat> images) {
     int i = 0;
     width = -1;
@@ -21,9 +15,9 @@ void BarytexLearnRenderer::InputLayers::upload_source_images(
     
     std::vector<void*> img_ptr_array;
 
-    img_ptr_array.reserve(in_data.captured_images.size());
-    if(images.size() != in_data.captured_images.size()){
-        in_data.captured_images.resize(images.size());
+    img_ptr_array.reserve(captured_images.size());
+    if(images.size() != captured_images.size()){
+        captured_images.resize(images.size());
     }
     
     for (const auto& img : images) {
@@ -34,23 +28,23 @@ void BarytexLearnRenderer::InputLayers::upload_source_images(
             throw std::invalid_argument("[" + std::string(__PRETTY_FUNCTION__) +
                                 "] image sizes in one capturing must be the same");
         }
-        in_data.captured_images[i].upload(img);
-        img_ptr_array.push_back(in_data.captured_images[i].buffer_ptr());
+        captured_images[i].upload_cv_mat(img);
+        img_ptr_array.push_back(captured_images[i].buffer_ptr());
         ++i;
     }
 
-    images_ptr_array.alloc_and_upload<void*>(img_ptr_array.data(),img_ptr_array.size());
+    images_ptr_array.alloc_and_upload<void*>(img_ptr_array);
 }
 
-void BarytexLearnRenderer::InputLayers::clear() { captured_image.clear(); }
+void BarytexLearnRenderer::InputData::clear() { captured_images.clear(); }
 
 BarytexLearnRenderer::launch_params_t::RenderData
 BarytexLearnRenderer::get_cuda() {
     launch_params_t::RenderData out;
-    out.out_data = out_data.measurements.buffer_ptr();
+    out.out_data = reinterpret_cast<MeasurementHit*>(out_data.measurements.buffer_ptr());
     out.out_size = out_data.measurements.size;
 
-    out.captured_images = images_ptr_array.d_ptr;
+    out.captured_images = reinterpret_cast<gdt::vec3f**>(in_data.images_ptr_array.d_ptr);
     out.height = in_data.height;
     out.img_count = in_data.captured_images.size();
     return out;
@@ -108,7 +102,7 @@ PhotometryCamera& BarytexLearnRenderer::photometry_camera(
                                 "] unknown camera: " + cam_label);
 }
 
-const BarytexLearnRenderer::OutputLayers& BarytexLearnRenderer::render(
+const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(
     const std::string& camera_label) {
     if (photometry_cameras.count(camera_label) > 0) {
         auto& camera = photometry_cameras[camera_label];
@@ -118,7 +112,7 @@ const BarytexLearnRenderer::OutputLayers& BarytexLearnRenderer::render(
                 "[" + std::string(__PRETTY_FUNCTION__) +
                 "] input image not matching camera resolution");
         }
-        out_layers.resize(res(0), res(1));
+        out_data.measurements.resize(res(0)*res(1)*in_data.captured_images.size());
         std::cout << "Start render" << std::endl;
         TICK;
 
@@ -130,7 +124,7 @@ const BarytexLearnRenderer::OutputLayers& BarytexLearnRenderer::render(
         // _clear_buffers();
         // update_scene();
         launch_params_buff.upload(&launch_params, 1);
-        out_layers.clear();
+        out_data.clear();
         TICK;
         // OPTIX_CHECK(
         optixLaunch(/*! pipeline we're launching launch: */
@@ -148,7 +142,7 @@ const BarytexLearnRenderer::OutputLayers& BarytexLearnRenderer::render(
         throw std::invalid_argument("[" + std::string(__PRETTY_FUNCTION__) +
                                     "] unsupported camera: " + camera_label);
     }
-    return out_layers;
+    return out_data;
 }
 
 }  // namespace chameleon

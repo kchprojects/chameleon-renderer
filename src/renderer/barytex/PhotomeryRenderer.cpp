@@ -1,4 +1,4 @@
-#include <chameleon_renderer/renderer/Renderer.hpp>
+#include <chameleon_renderer/renderer/PhotometryRenderer.hpp>
 
 namespace chameleon {
 void

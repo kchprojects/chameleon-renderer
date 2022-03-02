@@ -1,6 +1,5 @@
 #pragma once
-#include <chameleon_renderer/cuda/CUDABuffer.h>
-
+#include <chameleon_renderer/cuda/CUDABuffer.hpp>
 #include <chameleon_renderer/utils/cv2gdt.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -60,10 +59,14 @@ struct InputImageLayer
 
     void upload_cv_mat(const cv::Mat_<IMG_T>& img)
     {
-        if ( res_x != img.cols || res_y != img.rows){
+        if ( res_x != size_t(img.cols) || res_y != size_t(img.rows)){
             resize(img.cols,img.rows);
         }
-        cuda_buffer.upload((buffer_t*)img.data(), res_x * res_y);
+        cuda_buffer.upload(reinterpret_cast<const buffer_t*>(img.data), res_x * res_y);
+    }
+
+    ~InputImageLayer(){
+        clear();
     }
 };
 
