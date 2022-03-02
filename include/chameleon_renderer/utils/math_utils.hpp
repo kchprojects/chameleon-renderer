@@ -1,8 +1,13 @@
 #pragma once
 
+//GDT
 #include <gdt/math/AffineSpace.h>
 #include <gdt/math/vec.h>
+//GLM
+#include <glm/glm.hpp>
+
 namespace chameleon {
+//TODO: remove gdm dependency
 using gdt::box3f;
 using gdt::vec2f;
 using gdt::vec2i;
@@ -28,5 +33,18 @@ struct affine_mat4f {
     mat3f R;
     vec3f translation;
 };
+
+struct Triangle3D{
+    glm::vec3 A;
+    glm::vec3 B;
+    glm::vec3 C;
+};
+
+struct Triangle2D{
+    glm::vec2 A;
+    glm::vec2 B;
+    glm::vec2 C;
+};
+
 
 }  // namespace chameleon

@@ -2,9 +2,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 #include <string>
 
 namespace chameleon {
+
+namespace fs = std::filesystem;
+
 inline std::string readPTX(std::string const& filename) {
     std::ifstream inputPtx(filename);
 

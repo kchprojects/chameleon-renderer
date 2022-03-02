@@ -36,4 +36,60 @@ struct ImageLayer
         return out.clone();
     }
 };
+
+template<typename IMG_T>
+struct InputImageLayer
+{
+    using buffer_t = equivalent::cv2gdt_v<IMG_T>;
+    size_t res_x = 0;
+    size_t res_y = 0;
+    CUDABuffer cuda_buffer;
+
+    void resize(size_t x, size_t y)
+    {
+        if (res_x == x and res_y == y)
+            return;
+        res_x = x;
+        res_y = y;
+        cuda_buffer.resize(x * y * sizeof(buffer_t));
+    }
+
+    auto buffer_ptr() { return cuda_buffer.d_ptr; }
+
+    void clear() { cuda_buffer.clear(); }
+
+    void upload_cv_mat(const cv::Mat_<IMG_T>& img)
+    {
+        if ( res_x != img.cols || res_y != img.rows){
+            resize(img.cols,img.rows);
+        }
+        cuda_buffer.upload((buffer_t*)img.data(), res_x * res_y);
+    }
+};
+
+
+template<typename buffer_t>
+struct VectorLayer
+{
+    size_t size = 0;
+    CUDABuffer cuda_buffer;
+    std::vector<buffer_t> download_buffer;
+
+    void resize(size_t new_size)
+    {
+        size = new_size;
+        cuda_buffer.resize(size * sizeof(buffer_t));
+        download_buffer.resize(size);
+    }
+    auto buffer_ptr() { return cuda_buffer.d_ptr; }
+
+    void clear() { cuda_buffer.clear(); }
+
+    const std::vector<buffer_t>& download()
+    {
+        cuda_buffer.download(download_buffer);
+        return download_buffer;
+    }
+
+};
 } // namespace chameleon

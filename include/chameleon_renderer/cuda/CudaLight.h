@@ -16,6 +16,8 @@ struct CudaLight
     vec3f position;
     vec3f direction;
     float intensity;
+    vec3f color;
+
 };
 
 struct CudaLightArray
