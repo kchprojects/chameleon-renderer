@@ -3,8 +3,8 @@
 #include <map>
 #include <memory>
 
-#include <chameleon_renderer/cuda/CUDABuffer.h>
-#include <chameleon_renderer/utils/optix7.h>
+#include <chameleon_renderer/cuda/CUDABuffer.hpp>
+#include <chameleon_renderer/utils/optix7.hpp>
 
 namespace chameleon {
 struct OptixContext

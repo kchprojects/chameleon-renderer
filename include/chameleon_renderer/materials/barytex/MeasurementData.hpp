@@ -1,7 +1,7 @@
 #pragma once
 #include <MeasurementHit.hpp>
 #include <unordered_set>
-#include <chameleon_renderer/cuda/CUDABuffer.h>
+#include <chameleon_renderer/cuda/CUDABuffer.hpp>
 #include <vector>
 
 namespace chameleon {

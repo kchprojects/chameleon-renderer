@@ -2,7 +2,7 @@
 
 #include <chameleon_renderer/cuda/CudaCamera.h>
 #include <chameleon_renderer/cuda/CudaLight.h>
-#include <chameleon_renderer/utils/optix7.h>
+#include <chameleon_renderer/utils/optix7.hpp>
 #include <curand.h>  // ? why
 
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
@@ -26,7 +26,7 @@ struct LaunchParams {
 
     // setup data
     CudaCamera camera;
-    CudaLightAr ray light_data;
+    CudaLightArray light_data;
 
     // optix
     OptixTraversableHandle traversable;

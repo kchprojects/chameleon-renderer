@@ -1,5 +1,5 @@
 #pragma once
-#include <chameleon_renderer/cuda/CUDABuffer.h>
+#include <chameleon_renderer/cuda/CUDABuffer.hpp>
 
 #include <chameleon_renderer/optix/OptixContext.hpp>
 #include <chameleon_renderer/scene/Model.hpp>
