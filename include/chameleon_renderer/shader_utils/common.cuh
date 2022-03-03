@@ -6,7 +6,7 @@
 
 #include <chameleon_renderer/utils/math_utils.hpp>
 
-#include "PerRayData.h"
+#include "PerRayData.cuh"
 
 namespace chameleon {
 /*! launch parameters in constant memory, filled in by optix upon

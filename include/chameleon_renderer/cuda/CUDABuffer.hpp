@@ -1,43 +1,25 @@
 #pragma once
-
-#include <chameleon_renderer/utils/optix7.hpp>
-// common std stuff
-#include <assert.h>
-
 #include <vector>
+#include <chameleon_renderer/utils/optix7.hpp>
+#include <assert.h>
 
 namespace chameleon {
 
 /*! simple wrapper for creating, and managing a device-side CUDA
     buffer */
 struct CUDABuffer {
-    inline CUdeviceptr d_pointer() const { return (CUdeviceptr)d_ptr; }
+    CUdeviceptr d_pointer() const;
 
     //! re-size buffer to given number of bytes
-    void resize(size_t size) {
-        if (sizeInBytes == size) return;
-
-        if (d_ptr) free();
-        alloc(size);
-    }
+    void resize(size_t size);
 
     //! allocate to given number of bytesvector
-    void alloc(size_t size) {
-        assert(d_ptr == nullptr);
-        this->sizeInBytes = size;
-        CUDA_CHECK(cudaMalloc((void**)&d_ptr, sizeInBytes));
-    }
-    void clear() {
-        assert(d_ptr != nullptr);
-        CUDA_CHECK(cudaMemset(d_ptr, 0, this->sizeInBytes));
-        // CUDA_CHECK(cudaMalloc((void**)&d_ptr, sizeInBytes));
-    }
+    void alloc(size_t size);
+
+    void clear();
+
     //! free allocated memory
-    void free() {
-        CUDA_CHECK(cudaFree(d_ptr));
-        d_ptr = nullptr;
-        sizeInBytes = 0;
-    }
+    void free();
 
     template <typename T>
     void alloc_and_upload(const std::vector<T>& vt) {
@@ -73,7 +55,7 @@ struct CUDABuffer {
                               cudaMemcpyDeviceToHost));
     }
 
-    ~CUDABuffer() { free(); }
+    ~CUDABuffer();
 
     size_t sizeInBytes{0};
     void* d_ptr{nullptr};

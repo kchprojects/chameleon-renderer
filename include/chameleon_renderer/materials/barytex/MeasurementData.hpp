@@ -1,7 +1,7 @@
 #pragma once
-#include <MeasurementHit.hpp>
-#include <unordered_set>
+#include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 #include <chameleon_renderer/cuda/CUDABuffer.hpp>
+#include <unordered_map>
 #include <vector>
 
 namespace chameleon {
@@ -9,21 +9,9 @@ namespace chameleon {
 struct SingleMeasurementData {
     std::vector<MeasurementHit> measurements;
 
-    std::unordered_set<std::vector<MeasurementHit>> compress_hits() const {
-        std::unordered_set<std::vector<MeasurementHit>> out;
+    std::unordered_map<int,std::vector<MeasurementHit>> compress_hits() const;
 
-        for (const auto& hit : measurements) {
-            if (hit.is_valid) {
-                out[hit.triangle_id].push_back(out);
-            }
-        }
-        return out;
-    }
-
-    void download(const CUDABuffer& buffer){
-        measurements.clear();
-        buffer.download(measurements);
-    }
+    void download(const CUDABuffer& buffer);
 };
 
 }  // namespace chameleon
