@@ -8,7 +8,7 @@ namespace chameleon {
 /*! simple wrapper for creating, and managing a device-side CUDA
     buffer */
 struct CUDABuffer {
-    inline CUdeviceptr d_pointer() const;
+    CUdeviceptr d_pointer() const;
 
     //! re-size buffer to given number of bytes
     void resize(size_t size);

@@ -2,7 +2,7 @@
 
 namespace chameleon {
 
-inline CUdeviceptr CUDABuffer::d_pointer() const { return (CUdeviceptr)d_ptr; }
+CUdeviceptr CUDABuffer::d_pointer() const { return reinterpret_cast<CUdeviceptr>(d_ptr); }
 
 void CUDABuffer::resize(size_t size) {
     if (sizeInBytes == size) return;

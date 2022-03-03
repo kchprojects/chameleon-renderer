@@ -1,6 +1,5 @@
 #pragma once
 #include <chameleon_renderer/cuda/CudaLight.h>
-
 #include <chameleon_renderer/utils/eigen_utils.hpp>
 #include <chameleon_renderer/utils/json.hpp>
 
@@ -21,47 +20,16 @@ struct ILight {
 };
 
 struct Light : ILight {
-    eigen_utils::Vec3<float> get_position() override {
-        throw std::runtime_error(
-            std::string("Unimplemented method ") + __PRETTY_FUNCTION__ +
-            std::string(" in light_type: ") + std::to_string(int(get_type())));
-    };
-    eigen_utils::Vec3<float> get_direction() override {
-        throw std::runtime_error(
-            std::string("Unimplemented method ") + __PRETTY_FUNCTION__ +
-            std::string(" in light_type: ") + std::to_string(int(get_type())));
-    }
-    void set_position(const eigen_utils::Vec3<float>&) override {
-        throw std::runtime_error(
-            std::string("Unimplemented method ") + __PRETTY_FUNCTION__ +
-            std::string(" in light_type: ") + std::to_string(int(get_type())));
-    }
-    void set_direction(const eigen_utils::Vec3<float>&) override {
-        throw std::runtime_error(
-            std::string("Unimplemented method ") + __PRETTY_FUNCTION__ +
-            std::string(" in light_type: ") + std::to_string(int(get_type())));
-    }
-    void set_intensity(float new_intensity) override {
-        intensity = new_intensity;
-    }
-    void set_color(const glm::vec3& new_color) override { color = new_color; }
-    const glm::vec3& get_color() const override { return color; }
-    float get_intensity() override { return intensity; };
+    eigen_utils::Vec3<float> get_position() override;
+    eigen_utils::Vec3<float> get_direction() override;
+    void set_position(const eigen_utils::Vec3<float>&) override;
+    void set_direction(const eigen_utils::Vec3<float>&) override;
+    void set_intensity(float new_intensity) override;
+    void set_color(const glm::vec3& new_color) override;
+    const glm::vec3& get_color() const override;
+    float get_intensity() override;
 
-    CudaLight convert_to_cuda() override {
-        auto l_type = get_type();
-        CudaLight out;
-        out.color = {color.x,color.y,color.z};
-        out.l_type = l_type;
-        out.intensity = get_intensity();
-        if (l_type == LightType::POINT || l_type == LightType::SPOT) {
-            out.position = eigen_utils::from_eigen_v3(get_position());
-        }
-        if (l_type == LightType::DIRECT || l_type == LightType::SPOT) {
-            out.direction = eigen_utils::from_eigen_v3(get_direction());
-        }
-        return out;
-    }
+    CudaLight convert_to_cuda() override;
 
    private:
     float intensity = 1;
@@ -73,16 +41,12 @@ class SpotLight : public Light {
     eigen_utils::Vec3<float> direction;
 
    public:
-    LightType get_type() override { return LightType::SPOT; }
+    LightType get_type() override;
 
-    eigen_utils::Vec3<float> get_position() override { return position; };
-    void set_position(const eigen_utils::Vec3<float>& pos) override {
-        position = pos;
-    };
-    eigen_utils::Vec3<float> get_direction() override { return direction; };
-    void set_direction(const eigen_utils::Vec3<float>& dir) override {
-        direction = dir;
-    };
+    eigen_utils::Vec3<float> get_position() override;
+    void set_position(const eigen_utils::Vec3<float>& pos) override;
+    eigen_utils::Vec3<float> get_direction() override;
+    void set_direction(const eigen_utils::Vec3<float>& dir);
 };
 
 class PointLight : public Light {
@@ -90,14 +54,12 @@ class PointLight : public Light {
 
    public:
     PointLight() = default;
-    PointLight(eigen_utils::Vec3<float> position) : position(position) {}
+    PointLight(eigen_utils::Vec3<float> position);
 
-    LightType get_type() override { return LightType::POINT; }
+    LightType get_type() override;
 
-    eigen_utils::Vec3<float> get_position() override { return position; };
-    void set_position(const eigen_utils::Vec3<float>& pos) override {
-        position = pos;
-    };
+    eigen_utils::Vec3<float> get_position() override;
+    void set_position(const eigen_utils::Vec3<float>& pos) override;
 };
 
 class DirectionLight : public Light {
@@ -105,13 +67,11 @@ class DirectionLight : public Light {
 
    public:
     DirectionLight() = default;
-    DirectionLight(eigen_utils::Vec3<float> direction) : direction(direction) {}
+    DirectionLight(eigen_utils::Vec3<float> direction);
 
-    LightType get_type() override { return LightType::DIRECT; }
-    eigen_utils::Vec3<float> get_direction() override { return direction; };
-    void set_direction(const eigen_utils::Vec3<float>& dir) override {
-        direction = dir;
-    };
+    LightType get_type() override;
+    eigen_utils::Vec3<float> get_direction() override;
+    void set_direction(const eigen_utils::Vec3<float>& dir) override;
 };
 
 }  // namespace chameleon

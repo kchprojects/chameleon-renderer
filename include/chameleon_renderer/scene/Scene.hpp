@@ -1,21 +1,20 @@
 #pragma once
-#include "Camera.hpp"
-#include "Model.hpp"
-#include "SceneObject.hpp"
 #include <chameleon_renderer/utils/eigen_utils.hpp>
 #include <chameleon_renderer/utils/math_utils.hpp>
 
+#include "Camera.hpp"
+#include "Model.hpp"
+#include "SceneObject.hpp"
+
 namespace chameleon {
-enum unit
-{
+enum unit {
     mm = 1,
     cm = 10,
     dm = 100,
     m = 1000,
 };
 
-class Scene
-{
+class Scene {
     Eigen::Matrix4f _transform;
     Eigen::Matrix4f _unit_scale;
     Eigen::Matrix4f _coordinate_transform;
@@ -24,32 +23,23 @@ class Scene
     CalibratedCamera _camera;
     ModifyGuard<std::vector<vec3f>> _light_positions;
 
-public:
-    Scene(unit unit, float rx = 0, float ry = 0, float rz = 0)
-    {
-        using namespace eigen_utils;
-        _unit_scale = to_homogenus<float, 3>(
-            scale_mat(1 / float(unit), 1 / float(unit), 1 / float(unit)));
-        _coordinate_transform =
-            to_homogenus<float, 3>(euler_to_mat(rx, ry, rz));
-        _transform = _unit_scale;
-    }
+   public:
+    Scene(unit unit, float rx = 0, float ry = 0, float rz = 0);
 
-    void set_model(Model m) { _model = std::move(m); }
-    void set_camera(CalibratedCamera c) { _camera = std::move(c); }
+    void set_model(Model m);
+    void set_camera(CalibratedCamera c);
 
-    void set_lights(std::vector<vec3f> lights)
-    {
-        _light_positions = std::move(lights);
-    }
+    void set_lights(std::vector<vec3f> lights);
 
-    auto& camera() { return _camera; }
-    const auto& light_positions() const { return _light_positions; }
-    auto& light_positions() { return _light_positions; }
-    const auto& camera() const { return _camera; }
+    CalibratedCamera& camera();
+    const CalibratedCamera& camera() const;
 
-    const auto& model() const { return _model; }
+    const chameleon::ModifyGuard<std::vector<gdt::vec3f>>& light_positions()
+        const;
+    chameleon::ModifyGuard<std::vector<gdt::vec3f>>& light_positions();
 
-    const auto& transform() { return _transform; }
+    const Model& model() const;
+
+    const Eigen::Matrix4f& transform();
 };
-} // namespace chameleon
+}  // namespace chameleon

@@ -57,21 +57,14 @@ struct SceneObject
     using mat_t = typename eigen_utils::InvertableMatrix<float, 4, 4>::mat_t;
 
     SceneObject() = default;
-    SceneObject(mat_t obj_mat)
-        : _object_matrix(std::move(obj_mat))
-    {}
+    SceneObject(mat_t obj_mat);
     SceneObject(const SceneObject&) = default;
-    SceneObject& operator=(SceneObject other)
-    {
-        _object_matrix = std::move(other._object_matrix);
-        modified = true;
-        return *this;
-    }
-    void set_object_matrix(mat_t mat) { _object_matrix.set(std::move(mat)); }
+    SceneObject& operator=(SceneObject other);
+    void set_object_matrix(mat_t mat);
 
-    bool is_modified() const { return _object_matrix.is_modified(); }
-    const auto& object_matrix() { return _object_matrix->mat(); }
-    const auto& inv_object_matrix() { return _object_matrix->inv(); }
+    bool is_modified() const;
+    const auto& object_matrix();
+    const auto& inv_object_matrix();
 
 protected:
     bool modified = true;
