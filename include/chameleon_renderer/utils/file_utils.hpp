@@ -4,6 +4,7 @@
 #include <sstream>
 #include <filesystem>
 #include <string>
+#include <spdlog/spdlog.h>
 
 namespace chameleon {
 
@@ -13,8 +14,7 @@ inline std::string readPTX(std::string const& filename) {
     std::ifstream inputPtx(filename);
 
     if (!inputPtx) {
-        std::cerr << "ERROR: readPTX() Failed to open file " << filename
-                  << '\n';
+        spdlog::error("ERROR: readPTX() Failed to open file {}", filename);
         return std::string();
     }
 
@@ -23,8 +23,7 @@ inline std::string readPTX(std::string const& filename) {
     ptx << inputPtx.rdbuf();
 
     if (inputPtx.fail()) {
-        std::cerr << "ERROR: readPTX() Failed to read file " << filename
-                  << '\n';
+        spdlog::error("ERROR: readPTX() Failed to read file {}", filename);
         return std::string();
     }
 

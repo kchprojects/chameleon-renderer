@@ -1,17 +1,13 @@
 #include <chameleon_renderer/renderer/PhotometryRenderer.hpp>
 
 namespace chameleon {
-void
-PhotometryRenderer::OutputLayers::resize(size_t x, size_t y)
-{
+void PhotometryRenderer::OutputLayers::resize(size_t x, size_t y) {
     normal_map.resize(x, y);
     uv_map.resize(x, y);
     mask.resize(x, y);
     view.resize(x, y);
 }
-void
-PhotometryRenderer::OutputLayers::clear()
-{
+void PhotometryRenderer::OutputLayers::clear() {
     normal_map.clear();
     uv_map.clear();
     mask.clear();
@@ -19,10 +15,9 @@ PhotometryRenderer::OutputLayers::clear()
 }
 
 PhotometryRenderer::launch_params_t::Layers
-PhotometryRenderer::OutputLayers::get_cuda()
-{
+PhotometryRenderer::OutputLayers::get_cuda() {
     launch_params_t::Layers out;
-    out.size = { int(normal_map.res_x), int(normal_map.res_y) };
+    out.size = {int(normal_map.res_x), int(normal_map.res_y)};
     out.normal_map = (decltype(out.normal_map))normal_map.buffer_ptr();
 
     out.uv_map = (decltype(out.uv_map))uv_map.buffer_ptr();
@@ -31,8 +26,7 @@ PhotometryRenderer::OutputLayers::get_cuda()
     return out;
 }
 
-PhotometryRenderer::PhotometryRenderer()
-{
+PhotometryRenderer::PhotometryRenderer() {
     pipelineCompileOptions.traversableGraphFlags =
         OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS;
     pipelineCompileOptions.usesMotionBlur = false;
@@ -44,24 +38,22 @@ PhotometryRenderer::PhotometryRenderer()
 }
 
 /**
- * @brief 
- * @param 
- * 
+ * @brief
+ * @param
+ *
  */
-void
-PhotometryRenderer::setup()
-{
+void PhotometryRenderer::setup() {
     PING raygen_module = base_module_create(
         "./raygen.ptx", moduleCompileOptions, pipelineCompileOptions);
-    miss_module = base_module_create(
-        "./miss.ptx", moduleCompileOptions, pipelineCompileOptions);
-    anyhit_module = base_module_create(
-        "./any_hit.ptx", moduleCompileOptions, pipelineCompileOptions);
+    miss_module = base_module_create("./miss.ptx", moduleCompileOptions,
+                                     pipelineCompileOptions);
+    anyhit_module = base_module_create("./any_hit.ptx", moduleCompileOptions,
+                                       pipelineCompileOptions);
     closest_hit_module = base_module_create(
         "./closest_hit.ptx", moduleCompileOptions, pipelineCompileOptions);
     PING programs.add_raygen_program("renderFrame", raygen_module);
-    programs.add_ray(
-        "radiance", { miss_module }, { anyhit_module }, { closest_hit_module });
+    programs.add_ray("radiance", {miss_module}, {anyhit_module},
+                     {closest_hit_module});
     // programs.add_ray("shadow", {miss_module}, {anyhit_module},
     //                  {closest_hit_module});
     PING pipeline =
@@ -69,31 +61,27 @@ PhotometryRenderer::setup()
     PING launch_params_buff.alloc(sizeof(launch_params_t));
 }
 
-void
-PhotometryRenderer::add_camera(const std::string& cam_label,
-                               const PhotometryCamera& cam)
-{
+void PhotometryRenderer::add_camera(const std::string& cam_label,
+                                    const PhotometryCamera& cam) {
     photometry_cameras[cam_label] = cam;
 }
 
-PhotometryCamera&
-PhotometryRenderer::photometry_camera(const std::string& cam_label)
-{
+PhotometryCamera& PhotometryRenderer::photometry_camera(
+    const std::string& cam_label) {
     if (photometry_cameras.count(cam_label) > 0) {
         return photometry_cameras[cam_label];
     }
-    throw std::invalid_argument("[" + std::string(__PRETTY_FUNCTION__) +
-                                "] unknown camera: " + cam_label);
+    spdlog::error("[ {} ] unknown camera: {}", __PRETTY_FUNCTION__, cam_label);
+    throw std::invalid_argument("unknown camera: " + cam_label);
 }
 
-const PhotometryRenderer::OutputLayers&
-PhotometryRenderer::render(const std::string& camera_label)
-{
+const PhotometryRenderer::OutputLayers& PhotometryRenderer::render(
+    const std::string& camera_label) {
     if (photometry_cameras.count(camera_label) > 0) {
         auto& camera = photometry_cameras[camera_label];
         auto res = camera.resolution();
         out_layers.resize(res(0), res(1));
-        std::cout << "Start render" << std::endl;
+        spdlog::info("Start render");
         TICK;
 
         launch_params.layers = out_layers.get_cuda();
@@ -108,25 +96,22 @@ PhotometryRenderer::render(const std::string& camera_label)
         TICK;
         // OPTIX_CHECK(
         optixLaunch(/*! pipeline we're launching launch: */
-                    pipeline,
-                    OptixContext::get()->stream,
+                    pipeline, OptixContext::get()->stream,
                     /*! parameters and SBT */
                     launch_params_buff.d_pointer(),
-                    launch_params_buff.sizeInBytes,
-                    &programs.sbt,
+                    launch_params_buff.sizeInBytes, &programs.sbt,
                     /*! dimensions of the launch: */
-                    res(0),
-                    res(1),
-                    1);
+                    res(0), res(1), 1);
         // );
         CUDA_SYNC_CHECK();
         TOCK;
-        std::cout << "Render done" << std::endl;
+        spdlog::info("Render done");
     } else {
-        throw std::invalid_argument("[" + std::string(__PRETTY_FUNCTION__) +
-                                    "] unsupported camera: " + camera_label);
+        spdlog::error("[ {} ] unsupported camera: {}", __PRETTY_FUNCTION__,
+                      camera_label);
+        throw std::invalid_argument("unsupported camera: " + camera_label);
     }
     return out_layers;
 }
 
-} // namespace chameleon
+}  // namespace chameleon

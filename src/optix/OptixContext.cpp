@@ -3,6 +3,7 @@
 #include <chameleon_renderer/utils/optix_device_utils.hpp>
 #include <chameleon_renderer/utils/terminal_utils.hpp>
 
+
 namespace chameleon {
 
 std::shared_ptr<OptixContext>
@@ -18,23 +19,24 @@ void
 OptixContext::initialize()
 {
     if (!initialized) {
-        std::cout << "#osc: initializing optix..." << std::endl;
+        spdlog::info("initializing optix...");
         // -------------------------------------------------------
         // check for available optix7 capable devices
         // -------------------------------------------------------
         cudaFree(0);
         int numDevices;
         cudaGetDeviceCount(&numDevices);
-        if (numDevices == 0)
-            throw std::runtime_error("#osc: no CUDA capable devices found!");
-        std::cout << "#osc: found " << numDevices << " CUDA devices"
-                  << std::endl;
+        if (numDevices == 0){
+            spdlog::error("no CUDA capable devices found!");
+            throw std::runtime_error("no CUDA capable devices found!");
+        }
+        spdlog::info("found {} CUDA devices",numDevices);
 
         // -------------------------------------------------------
         // initialize optix
         // -------------------------------------------------------
         OPTIX_CHECK(optixInit());
-        std::cout << "#osc: successfully initialized optix" << std::endl;
+        spdlog::info("successfully initialized optix");
         initialized = true;
     }
 }
@@ -47,15 +49,14 @@ OptixContext::OptixContext(int deviceID)
     CUDA_CHECK(cudaStreamCreate(&stream));
 
     cudaGetDeviceProperties(&deviceProps, deviceID);
-    std::cout << "#osc: running on device: " << deviceProps.name << std::endl;
+    spdlog::info("running on device: {}", deviceProps.name);
     CUresult cuRes = cuCtxGetCurrent(&cudaContext);
-    if (cuRes != CUDA_SUCCESS)
-        fprintf(
-            stderr, "Error querying current context: error code %d\n", cuRes);
+    if (cuRes != CUDA_SUCCESS){
+        spdlog::error("Error querying current context: error code {}n", cuRes);
+    }
     OPTIX_CHECK(optixDeviceContextCreate(cudaContext, 0, &optixContext));
     OPTIX_CHECK(optixDeviceContextSetLogCallback(
         optixContext, context_log_cb, nullptr, 4));
-    PING
 }
 
 bool OptixContext::initialized = false;

@@ -108,12 +108,12 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(
         auto& camera = photometry_cameras[camera_label];
         auto res = camera.resolution();
         if (res(0) != in_data.width || res(1) != in_data.height) {
-            throw std::invalid_argument(
-                "[" + std::string(__PRETTY_FUNCTION__) +
-                "] input image not matching camera resolution");
+            spdlog::error("[ {} ] input image not matching camera resolution",__PRETTY_FUNCTION__);
+
+            throw std::invalid_argument("input image not matching camera resolution");
         }
         out_data.measurements.resize(res(0)*res(1)*in_data.captured_images.size());
-        std::cout << "Start render" << std::endl;
+        spdlog::info("Start render");
         TICK;
 
         launch_params.render_data = get_cuda();
@@ -137,10 +137,10 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(
         // );
         CUDA_SYNC_CHECK();
         TOCK;
-        std::cout << "Render done" << std::endl;
+        spdlog::info("Render done");
     } else {
-        throw std::invalid_argument("[" + std::string(__PRETTY_FUNCTION__) +
-                                    "] unsupported camera: " + camera_label);
+        spdlog::error("[ {} ] unsupported camera: {}",__PRETTY_FUNCTION__,camera_label);
+        throw std::invalid_argument("unsupported camera: " + camera_label);
     }
     return out_data;
 }
