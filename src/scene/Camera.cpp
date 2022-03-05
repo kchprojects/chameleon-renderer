@@ -43,8 +43,17 @@ namespace chameleon {
         if (j.count("imageSize")) {
             _resolution = { j.at("imageSize")[0], j.at("imageSize")[1] };
         }
-        std::cout << "CAM < " << _camera_matrix << std::endl;
-        std::cout << "RES < " << _resolution << std::endl;
+        {
+            std::stringstream ss;
+            ss << _camera_matrix;
+            spdlog::info("CAM < {}",ss.str());
+        }
+        {
+            std::stringstream ss;
+            ss << _resolution;
+            spdlog::info("RES < {}",ss.str());
+        }
+
         _camera_matrix_inverse = _camera_matrix.inverse();
         move_to(eigen_utils::Mat4<float>::Identity());
     }
@@ -95,8 +104,7 @@ namespace chameleon {
             eigen_utils::from_eigen_m4(_object_matrix_inverse);
         out.pos = eigen_utils::from_eigen_homogenus(
             _object_matrix * eigen_utils::Vec4<float>(0, 0, 0, 1));
-        std::cout << out.pos.x << "," << out.pos.y << "," << out.pos.z
-                  << std::endl;
+        spdlog::info("{}, {}, {}",out.pos.x, out.pos.y, out.pos.z);
         // std::cout << out.camera_mat.r1.x << " " << out.camera_mat.r1.y << " "
         //           << out.camera_mat.r1.z << std::endl
         //           << out.camera_mat.r2.x << " " << out.camera_mat.r2.y << " "

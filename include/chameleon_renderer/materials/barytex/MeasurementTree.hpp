@@ -3,7 +3,7 @@
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <glm/glm.hpp>
+#include <chameleon_renderer/utils/math_utils.hpp>
 #include <memory>
 
 namespace chameleon {

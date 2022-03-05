@@ -20,7 +20,7 @@ OptixModule base_module_create(
 
     PING
     if (sizeof_log > 1)
-        PRINT(log);
+        spdlog::info(log);
     return out;
 }
 

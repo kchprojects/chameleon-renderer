@@ -13,13 +13,13 @@ namespace chameleon {
 /*! a simple indexed triangle mesh that our sample renderer will
     render */
 struct TriangleMesh {
-    std::vector<vec3f> vertex;
-    std::vector<vec3f> normal;
-    std::vector<vec2f> texcoord;
+    std::vector<glm::vec3> vertex;
+    std::vector<glm::vec3> normal;
+    std::vector<glm::vec2> texcoord;
     std::vector<vec3i> index;
 
     // material data:
-    vec3f diffuse;
+    glm::vec3 diffuse;
     int diffuseTextureID{-1};
 };
 

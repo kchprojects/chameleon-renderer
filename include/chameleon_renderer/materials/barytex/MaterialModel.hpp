@@ -1,7 +1,7 @@
 #pragma once
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 #include <chameleon_renderer/utils/file_utils.hpp>
-#include <glm/glm.hpp>
+#include <chameleon_renderer/utils/math_utils.hpp>
 #include <vector>
 
 namespace chameleon {

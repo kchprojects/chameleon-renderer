@@ -44,7 +44,7 @@ BarytexLearnRenderer::get_cuda() {
     out.out_data = reinterpret_cast<MeasurementHit*>(out_data.measurements.buffer_ptr());
     out.out_size = out_data.measurements.size;
 
-    out.captured_images = reinterpret_cast<gdt::vec3f**>(in_data.images_ptr_array.d_ptr);
+    out.captured_images = reinterpret_cast<glm::vec3**>(in_data.images_ptr_array.d_ptr);
     out.height = in_data.height;
     out.img_count = in_data.captured_images.size();
     return out;

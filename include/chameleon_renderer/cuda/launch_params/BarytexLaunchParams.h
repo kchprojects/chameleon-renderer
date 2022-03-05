@@ -1,10 +1,8 @@
 #pragma once
-
+#include <chameleon_renderer/utils/math_utils.hpp>
 #include <chameleon_renderer/cuda/CudaCamera.h>
 #include <chameleon_renderer/cuda/CudaLight.h>
 #include <chameleon_renderer/utils/optix7.hpp>
-#include <curand.h>  // ? why
-
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 
 namespace chameleon {
@@ -17,7 +15,7 @@ struct LaunchParams {
         MeasurementHit* out_data;
         size_t out_size;
 
-        vec3f** captured_images;
+        glm::vec3** captured_images;
         size_t width;
         size_t height;
         size_t img_count;

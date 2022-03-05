@@ -23,44 +23,44 @@ using Mat3 = Eigen::Matrix<T, 3, 3>;
 template <typename T>
 using Mat = Eigen::Matrix<T, -1, -1>;
 
-inline Vec3<float> to_eigen(const vec3f& v_gdt) {
+inline Vec3<float> to_eigen(const glm::vec3& v) {
     Vec3<float> out;
-    out << v_gdt.x, v_gdt.y, v_gdt.z;
+    out << v.x, v.y, v.z;
     return out;
 }
-inline Vec4<float> to_eigen_homogenus(const vec3f& v_gdt, bool is_point) {
+inline Vec4<float> to_eigen_homogenus(const glm::vec3& v, bool is_point) {
     Vec4<float> out;
     if (is_point) {
-        out << v_gdt.x, v_gdt.y, v_gdt.z, 1;
+        out << v.x, v.y, v.z, 1;
     } else {
-        out << v_gdt.x, v_gdt.y, v_gdt.z, 0;
+        out << v.x, v.y, v.z, 0;
     }
     return out;
 }
-inline vec3f from_eigen_homogenus(const Vec4<float>& v_eigen) {
+inline glm::vec3 from_eigen_homogenus(const Vec4<float>& v_eigen) {
     return {v_eigen(0), v_eigen(1), v_eigen(2)};
 }
 
-inline vec3f from_eigen_v3(const Vec3<float>& v_eigen) {
+inline glm::vec3 from_eigen_v3(const Vec3<float>& v_eigen) {
     return {v_eigen(0), v_eigen(1), v_eigen(2)};
 }
-inline vec4f from_eigen_v4(const Vec4<float>& v_eigen) {
+inline glm::vec4 from_eigen_v4(const Vec4<float>& v_eigen) {
     return {v_eigen(0), v_eigen(1), v_eigen(2), v_eigen(3)};
 }
-inline vec3f from_eigen_v4_v3(const Vec4<float>& v_eigen) {
+inline glm::vec3 from_eigen_v4_v3(const Vec4<float>& v_eigen) {
     return {v_eigen(0), v_eigen(1), v_eigen(2)};
 }
 
-inline mat3f from_eigen_m3(const Mat3<float>& m_eigen) {
-    return {{m_eigen(0,0), m_eigen(0,1), m_eigen(0,2)},
-            {m_eigen(1,0), m_eigen(1,1), m_eigen(1,2)},
-            {m_eigen(2,0), m_eigen(2,1), m_eigen(2,2)}};
+inline glm::mat3 from_eigen_m3(const Mat3<float>& m_eigen) {
+    return {m_eigen(0,0), m_eigen(0,1), m_eigen(0,2),
+            m_eigen(1,0), m_eigen(1,1), m_eigen(1,2),
+            m_eigen(2,0), m_eigen(2,1), m_eigen(2,2)};
 }
-inline mat4f from_eigen_m4(const Mat4<float>& m_eigen) {
-    return {{m_eigen(0,0), m_eigen(0,1), m_eigen(0,2), m_eigen(0,3)},
-            {m_eigen(1,0), m_eigen(1,1), m_eigen(1,2), m_eigen(1,3)},
-            {m_eigen(2,0), m_eigen(2,1), m_eigen(2,2), m_eigen(2,3)},
-            {m_eigen(3,0), m_eigen(3,1), m_eigen(3,2), m_eigen(3,3)}};
+inline glm::mat4 from_eigen_m4(const Mat4<float>& m_eigen) {
+    return {m_eigen(0,0), m_eigen(0,1), m_eigen(0,2), m_eigen(0,3),
+            m_eigen(1,0), m_eigen(1,1), m_eigen(1,2), m_eigen(1,3),
+            m_eigen(2,0), m_eigen(2,1), m_eigen(2,2), m_eigen(2,3),
+            m_eigen(3,0), m_eigen(3,1), m_eigen(3,2), m_eigen(3,3)};
 }
 
 inline Vec3<float> homogenus_transform(const Mat4<float>& mat,

@@ -21,7 +21,7 @@ class Scene {
 
     Model _model;
     CalibratedCamera _camera;
-    ModifyGuard<std::vector<vec3f>> _light_positions;
+    ModifyGuard<std::vector<glm::vec3>> _light_positions;
 
    public:
     Scene(unit unit, float rx = 0, float ry = 0, float rz = 0);
@@ -29,14 +29,14 @@ class Scene {
     void set_model(Model m);
     void set_camera(CalibratedCamera c);
 
-    void set_lights(std::vector<vec3f> lights);
+    void set_lights(std::vector<glm::vec3> lights);
 
     CalibratedCamera& camera();
     const CalibratedCamera& camera() const;
 
-    const chameleon::ModifyGuard<std::vector<gdt::vec3f>>& light_positions()
+    const chameleon::ModifyGuard<std::vector<glm::vec3>>& light_positions()
         const;
-    chameleon::ModifyGuard<std::vector<gdt::vec3f>>& light_positions();
+    chameleon::ModifyGuard<std::vector<glm::vec3>>& light_positions();
 
     const Model& model() const;
 

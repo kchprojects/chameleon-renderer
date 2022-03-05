@@ -6,59 +6,59 @@
 namespace chameleon {
 namespace equivalent {
 template<typename T>
-struct cv2gdt;
+struct cv2glm;
 
 template<typename T>
-using cv2gdt_v = typename cv2gdt<T>::value;
+using cv2glm_v = typename cv2glm<T>::value;
 
 template<typename T>
-struct gdt2cv;
+struct glm2cv;
 
 template<typename T>
-using gdt2cv_v = typename gdt2cv<T>::value;
+using glm2cv_v = typename glm2cv<T>::value;
 
 template<>
-struct cv2gdt<cv::Vec3f>
+struct cv2glm<cv::Vec3f>
 {
-    using value = vec3f;
+    using value = glm::vec3;
 };
 
 template<>
-struct cv2gdt<float>
+struct cv2glm<float>
 {
     using value = float;
 };
 
 template<>
-struct cv2gdt<cv::Vec3b>
+struct cv2glm<cv::Vec3b>
 {
-    using value = vec3uc;
+    using value = glm::vec<3,std::uint8_t>;
 };
 template<>
-struct cv2gdt<uchar>
+struct cv2glm<uchar>
 {
     using value = std::uint8_t;
 };
 
 template<>
-struct gdt2cv<vec3f>
+struct glm2cv<glm::vec3>
 {
     using value = cv::Vec3f;
 };
 
 template<>
-struct gdt2cv<float>
+struct glm2cv<float>
 {
     using value = float;
 };
 
 template<>
-struct gdt2cv<vec3uc>
+struct glm2cv<glm::vec<3,std::uint8_t>>
 {
     using value = cv::Vec3b;
 };
 template<>
-struct gdt2cv<std::uint8_t>
+struct glm2cv<std::uint8_t>
 {
     using value = uchar;
 };

@@ -7,10 +7,10 @@
 namespace chameleon {
 struct TriangleMeshSBTData
 {
-    vec3f color;
-    vec3f* vertex;
-    vec3f* normal;
-    vec2f* texcoord;
+    glm::vec3 color;
+    glm::vec3* vertex;
+    glm::vec3* normal;
+    glm::vec2* texcoord;
     vec3i* index;
 
     bool hasTexture;

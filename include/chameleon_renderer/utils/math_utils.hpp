@@ -1,50 +1,59 @@
 #pragma once
 
-//GDT
-#include <gdt/math/AffineSpace.h>
-#include <gdt/math/vec.h>
-//GLM
+// GLM cuda compatibility
+#ifdef __CUDA_ARCH__
+#define GLM_FORCE_CUDA
+#endif
+
 #include <glm/glm.hpp>
 
 namespace chameleon {
-//TODO: remove gdm dependency
-using gdt::box3f;
-using gdt::vec2f;
-using gdt::vec2i;
-using gdt::vec3f;
-using gdt::vec3i;
-using gdt::vec3uc;
-using gdt::vec4f;
-
-struct mat3f {
-    vec3f r1;
-    vec3f r2;
-    vec3f r3;
-};
-
-struct mat4f {
-    vec4f r1;
-    vec4f r2;
-    vec4f r3;
-    vec4f r4;
-};
-
-struct affine_mat4f {
-    mat3f R;
-    vec3f translation;
-};
-
-struct Triangle3D{
+// TODO: remove gdm dependency
+struct Triangle3D {
     glm::vec3 A;
     glm::vec3 B;
     glm::vec3 C;
 };
 
-struct Triangle2D{
+struct Triangle2D {
     glm::vec2 A;
     glm::vec2 B;
     glm::vec2 C;
 };
+template<typename T>
+struct box3{
+    glm::vec<3,T> min = {0,0,0};
+    glm::vec<3,T> max = {0,0,0};
 
+    void extend(const glm::vec<3,T>& vtx){
+        if(vtx.x < min.x){
+            min.x = vtx.x;
+        }
+        if(vtx.x > max.x){
+            max.x = vtx.x;
+        }
+
+        if(vtx.y < min.y){
+            min.y = vtx.y;
+        }
+        if(vtx.y > max.y){
+            max.y = vtx.y;
+        }
+
+        if(vtx.z < min.z){
+            min.z = vtx.z;
+        }
+        if(vtx.z > max.z){
+            max.z = vtx.z;
+        }
+        
+    }
+
+};
+
+
+using box3f = box3<float>;
+using vec2i = glm::vec<2,int>;
+using vec3i = glm::vec<3,int>;
 
 }  // namespace chameleon

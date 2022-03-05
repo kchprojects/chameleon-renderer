@@ -116,7 +116,7 @@ OptixStaticScene::setupAccel()
 
             auto& t_array = triangleInput[full_id].triangleArray;
             t_array.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
-            t_array.vertexStrideInBytes = sizeof(vec3f);
+            t_array.vertexStrideInBytes = sizeof(glm::vec3);
             t_array.numVertices = (int)mesh.vertex.size();
             t_array.vertexBuffers = &d_vertices[full_id];
 
