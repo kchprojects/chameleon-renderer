@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <chameleon_renderer/utils/optix7.hpp>
+#include <chameleon_renderer/utils/optix7.h>
 #include <assert.h>
 
 namespace chameleon {

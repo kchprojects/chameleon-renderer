@@ -36,43 +36,33 @@ static __forceinline__ __device__ T* getPRD() {
     return reinterpret_cast<T*>(unpackPointer(u0, u1));
 }
 
-inline __device__ vec3f transform(const mat3f& mat, const vec3f& vec) {
-    return {dot(mat.r1, vec), dot(mat.r2, vec), dot(mat.r3, vec)};
+inline __device__ glm::vec3 transform(const glm::mat3& mat, const glm::vec3& vec) {
+    return mat*vec;
 }
-inline __device__ float dot(const vec4f& a, const vec4f& b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+inline __device__ float dot(const glm::vec4& a, const glm::vec4& b) {
+    return glm::dot(a,b);
 }
-inline __device__ vec4f transform(const mat4f& mat, const vec4f& vec) {
-    return {dot(mat.r1, vec), dot(mat.r2, vec), dot(mat.r3, vec),
-            dot(mat.r4, vec)};
+inline __device__ glm::vec4 transform(const glm::mat4& mat, const glm::vec4& vec) {
+    return mat*vec;
 }
 
-inline __device__ vec3f transform_vec(const mat4f& mat, const vec3f& vec) {
-    vec4f vec_4d = {vec.x, vec.y, vec.z, 0.f};
+inline __device__ glm::vec3 transform_vec(const glm::mat4& mat, const glm::vec3& vec) {
+    glm::vec4 vec_4d = {vec.x, vec.y, vec.z, 0.f};
     vec_4d = transform(mat, vec_4d);
     return {vec_4d.x, vec_4d.y, vec_4d.z};
 }
-inline __device__ vec3f transform_point(const mat4f& mat, const vec3f& vec) {
-    vec4f vec_4d = {vec.x, vec.y, vec.z, 1.f};
+inline __device__ glm::vec3 transform_point(const glm::mat4& mat, const glm::vec3& vec) {
+    glm::vec4 vec_4d = {vec.x, vec.y, vec.z, 1.f};
     vec_4d = transform(mat, vec_4d);
     return {vec_4d.x, vec_4d.y, vec_4d.z};
-}
-
-inline __device__ vec3f transform_vec(const affine_mat4f& mat,
-                                      const vec3f& vec) {
-    return transform(mat.R, vec);
-}
-inline __device__ vec3f transform_point(const affine_mat4f& mat,
-                                        const vec3f& vec) {
-    return transform_vec(mat, vec) + mat.translation;
 }
 
 struct SurfaceInfo {
-    vec3f Ns;
-    vec3f Ng;
-    vec3f surfPos;
-    vec3f uv;
-    vec3f diffuseColor;
+    glm::vec3 Ns;
+    glm::vec3 Ng;
+    glm::vec3 surfPos;
+    glm::vec3 uv;
+    glm::vec3 diffuseColor;
 };
 
 inline __device__ SurfaceInfo get_surface_info() {
@@ -92,12 +82,12 @@ inline __device__ SurfaceInfo get_surface_info() {
     // compute normal, using either shading normal (if avail), or
     // geometry normal (fallback)
     // ------------------------------------------------------------------
-    const vec3f& A = sbtData.vertex[index.x];
-    const vec3f& B = sbtData.vertex[index.y];
-    const vec3f& C = sbtData.vertex[index.z];
-    vec3f Ng = cross(B - A, C - A);
+    const glm::vec3& A = sbtData.vertex[index.x];
+    const glm::vec3& B = sbtData.vertex[index.y];
+    const glm::vec3& C = sbtData.vertex[index.z];
+    glm::vec3 Ng = cross(B - A, C - A);
 
-    vec3f Ns;
+    glm::vec3 Ns;
     Ns = (sbtData.normal)
              ? ((1.f - u - v) * sbtData.normal[index.x] +
                 u * sbtData.normal[index.y] + v * sbtData.normal[index.z])
@@ -106,7 +96,7 @@ inline __device__ SurfaceInfo get_surface_info() {
     // ------------------------------------------------------------------
     // face-forward and normalize normals
     // ------------------------------------------------------------------
-    const vec3f rayDir = {optixGetWorldRayDirection().x,
+    const glm::vec3 rayDir = {optixGetWorldRayDirection().x,
                           optixGetWorldRayDirection().y,
                           optixGetWorldRayDirection().z};
 
@@ -121,11 +111,11 @@ inline __device__ SurfaceInfo get_surface_info() {
     // ------------------------------------------------------------------
     // compute shadow
     // ------------------------------------------------------------------
-    const vec3f surfPos = (1.f - u - v) * sbtData.vertex[index.x] +
+    const glm::vec3 surfPos = (1.f - u - v) * sbtData.vertex[index.x] +
                           u * sbtData.vertex[index.y] +
                           v * sbtData.vertex[index.z];
 
-    vec2f tc;
+    glm::vec<2,float> tc;
     if (sbtData.texcoord) {
         tc = (1.f - u - v) * sbtData.texcoord[index.x] +
              u * sbtData.texcoord[index.y] + v * sbtData.texcoord[index.z];
@@ -137,10 +127,10 @@ inline __device__ SurfaceInfo get_surface_info() {
     // diffuse texture
     // ------------------------------------------------------------------
 
-    vec3f diffuseColor = sbtData.color;
+    glm::vec3 diffuseColor = sbtData.color;
     if (sbtData.hasTexture && sbtData.texcoord) {
-        vec4f fromTexture = tex2D<float4>(sbtData.texture, tc.x, tc.y);
-        diffuseColor *= (vec3f)fromTexture;
+        float4 fromTexture = tex2D<float4>(sbtData.texture, tc.x, tc.y);
+        diffuseColor *= glm::vec3(fromTexture.x,fromTexture.y,fromTexture.z);
     }
     // TODO::differentiate meshes
     return {Ns, Ng, surfPos, {tc.x, tc.y, 0},diffuseColor};

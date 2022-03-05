@@ -77,18 +77,18 @@ extern "C" __global__ void __closesthit__shadow() {
 
 extern "C" __global__ void __closesthit__radiance() {
     const SurfaceInfo si = get_surface_info();
-    const vec3f rayDir = {optixGetWorldRayDirection().x,
+    const glm::vec3 rayDir = {optixGetWorldRayDirection().x,
                           optixGetWorldRayDirection().y,
                           optixGetWorldRayDirection().z};
     // printf(__FUNCTION__);
     photometry_render::RadiationRayData* prd =
         getPRD<photometry_render::RadiationRayData>();
 
-    vec3f& norm = *(prd->normal);
+    glm::vec3& norm = *(prd->normal);
     if (dot(rayDir, si.Ns) > 0) {
         norm = {0, 0, 0};
         *(prd->uv) = {0,0,-1};
-        *(prd->view) = 0;
+        *(prd->view) = {0,0,0};
         *(prd->mask) = 0;
     } else {
         norm = si.Ns;

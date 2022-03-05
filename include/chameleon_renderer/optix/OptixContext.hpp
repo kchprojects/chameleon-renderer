@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <chameleon_renderer/cuda/CUDABuffer.hpp>
-#include <chameleon_renderer/utils/optix7.hpp>
+#include <chameleon_renderer/utils/optix7.h>
 
 namespace chameleon {
 struct OptixContext

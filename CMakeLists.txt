@@ -31,8 +31,7 @@ mark_as_advanced(CUDA_SDK_ROOT_DIR)
 # ------------------------------------------------------------------
 # add gdt
 # ------------------------------------------------------------------
-set(gdt_dir ${PROJECT_SOURCE_DIR}/thirdparty/gdt)
-add_subdirectory(${gdt_dir} EXCLUDE_FROM_ALL)
+set(glm_dir ${PROJECT_SOURCE_DIR}/thirdparty/glm)
 # ------------------------------------------------------------------
 # build glfw
 # ------------------------------------------------------------------
@@ -40,7 +39,7 @@ add_subdirectory(${gdt_dir} EXCLUDE_FROM_ALL)
 # find_package(glfw3) add_subdirectory(thirdparty/glfWindow EXCLUDE_FROM_ALL)
 
 # for cuda programs need to add directories without target
-include_directories(${gdt_dir} ${OptiX_INCLUDE})
+include_directories(${glm_dir} ${OptiX_INCLUDE})
 
 set(SHADERS_DEPENDENCY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 file(GLOB SHADERS_DEPENDENCY_HEADERS
@@ -68,8 +67,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 target_link_libraries(
   ${PROJECT_NAME}
-  PUBLIC gdt
-         ${optix_LIBRARY}
+  PUBLIC ${optix_LIBRARY}
          ${CUDA_LIBRARIES}
          ${CUDA_CUDA_LIBRARY}
          ${OpenCV_LIBS}

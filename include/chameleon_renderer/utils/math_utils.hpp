@@ -2,9 +2,9 @@
 
 // GLM cuda compatibility
 #ifdef __CUDA_ARCH__
-#define GLM_FORCE_CUDA
+// #define GLM_FORCE_CUDA
+#define GLM_FORCE_SINGLE_ONLY
 #endif
-
 #include <glm/glm.hpp>
 
 namespace chameleon {

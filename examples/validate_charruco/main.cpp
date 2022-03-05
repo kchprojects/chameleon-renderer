@@ -5,7 +5,7 @@
 #include <memory>
 #include <opencv2/opencv.hpp>
 #include <chameleon_renderer/optix/OptixScene.hpp>
-#include <chameleon_renderer/renderer/Renderer.hpp>
+#include <chameleon_renderer/renderer/PhotometryRenderer.hpp>
 
 // #define SHOW_SHADOWS
 namespace chameleon {

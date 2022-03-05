@@ -2,7 +2,7 @@
 #include <chameleon_renderer/utils/math_utils.hpp>
 #include <chameleon_renderer/cuda/CudaCamera.h>
 #include <chameleon_renderer/cuda/CudaLight.h>
-#include <chameleon_renderer/utils/optix7.hpp>
+#include <chameleon_renderer/utils/optix7.h>
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 
 namespace chameleon {
