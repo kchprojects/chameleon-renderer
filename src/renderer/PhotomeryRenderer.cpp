@@ -111,6 +111,7 @@ const PhotometryRenderer::OutputLayers& PhotometryRenderer::render(
                       camera_label);
         throw std::invalid_argument("unsupported camera: " + camera_label);
     }
+    PING;
     return out_layers;
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <eigen3/Eigen/Eigen>
 #include <chameleon_renderer/utils/math_utils.hpp>
+#include <eigen3/Eigen/Eigen>
 
 namespace chameleon {
 namespace eigen_utils {
@@ -52,20 +52,19 @@ inline glm::vec3 from_eigen_v4_v3(const Vec4<float>& v_eigen) {
 }
 
 inline glm::mat3 from_eigen_m3(const Mat3<float>& m_eigen) {
-    return {m_eigen(0,0), m_eigen(0,1), m_eigen(0,2),
-            m_eigen(1,0), m_eigen(1,1), m_eigen(1,2),
-            m_eigen(2,0), m_eigen(2,1), m_eigen(2,2)};
+    return glm::transpose(glm::mat3(m_eigen(0, 0), m_eigen(0, 1), m_eigen(0, 2),
+            m_eigen(1, 0), m_eigen(1, 1), m_eigen(1, 2),
+            m_eigen(2, 0), m_eigen(2, 1), m_eigen(2, 2)));
 }
 inline glm::mat4 from_eigen_m4(const Mat4<float>& m_eigen) {
-    return {m_eigen(0,0), m_eigen(0,1), m_eigen(0,2), m_eigen(0,3),
+    return glm::transpose(glm::mat4(m_eigen(0,0), m_eigen(0,1), m_eigen(0,2), m_eigen(0,3),
             m_eigen(1,0), m_eigen(1,1), m_eigen(1,2), m_eigen(1,3),
             m_eigen(2,0), m_eigen(2,1), m_eigen(2,2), m_eigen(2,3),
-            m_eigen(3,0), m_eigen(3,1), m_eigen(3,2), m_eigen(3,3)};
+            m_eigen(3,0), m_eigen(3,1), m_eigen(3,2), m_eigen(3,3)));
 }
 
 inline Vec3<float> homogenus_transform(const Mat4<float>& mat,
-                                const Vec3<float>& vec,
-                                bool is_point) {
+                                       const Vec3<float>& vec, bool is_point) {
     Vec4<float> homog;
     if (is_point) {
         homog << vec(0), vec(1), vec(2), 1;
@@ -89,8 +88,7 @@ inline Eigen::Matrix<T, S + 1, S + 1> to_homogenus(
 
 template <typename T, size_t S>
 inline Eigen::Matrix<T, S + 1, 1> to_homogenus(
-    const Eigen::Matrix<T, S, 1>& vec,
-    T w = 0) {
+    const Eigen::Matrix<T, S, 1>& vec, T w = 0) {
     Eigen::Matrix<T, S + 1, 1> out = Eigen::Matrix<T, S + 1, 1>::Identity();
     out(S, 0) = w;
     return out;

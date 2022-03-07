@@ -37,7 +37,7 @@ static std::chrono::time_point<std::chrono::system_clock> __tick__time__start__;
 #define TICK __tick__time__start__ = std::chrono::system_clock::now();
 
 #define TOCK                                                                   \
-    spdlog::info("{} : {} : elapsed_time: {}s", __PRETTY_FUNCTION__, __LINE__,        \
+    spdlog::info("{} : {} : elapsed_time: {}s", __FUNCTION__, __LINE__,        \
                  std::chrono::duration<double>(                                \
                      std::chrono::system_clock::now() - __tick__time__start__) \
                      .count());

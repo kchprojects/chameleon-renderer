@@ -4,6 +4,8 @@
 #include <chameleon_renderer/utils/json.hpp>
 #include <chameleon_renderer/utils/math_utils.hpp>
 #include <chameleon_renderer/utils/terminal_utils.hpp>
+#include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 namespace chameleon {
     CalibratedCamera::CalibratedCamera() { move_to(eigen_utils::Mat4<float>::Identity()); }
@@ -102,9 +104,11 @@ namespace chameleon {
         out.obj_mat = eigen_utils::from_eigen_m4(_object_matrix);
         out.obj_mat_inverse =
             eigen_utils::from_eigen_m4(_object_matrix_inverse);
+        std::cout<<glm::to_string(out.camera_mat)<<std::endl;
+        std::cout<<glm::to_string(out.camera_mat_inverse)<<std::endl;
         out.pos = eigen_utils::from_eigen_homogenus(
             _object_matrix * eigen_utils::Vec4<float>(0, 0, 0, 1));
-        spdlog::info("{}, {}, {}",out.pos.x, out.pos.y, out.pos.z);
+        //spdlog::info("{}, {}, {}",out.pos.x, out.pos.y, out.pos.z);
         // std::cout << out.camera_mat.r1.x << " " << out.camera_mat.r1.y << " "
         //           << out.camera_mat.r1.z << std::endl
         //           << out.camera_mat.r2.x << " " << out.camera_mat.r2.y << " "
