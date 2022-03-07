@@ -86,8 +86,12 @@ inline __device__ float lambert(const glm::vec3& N, const glm::vec3& L){
     return max(0.f,dot(N, L));
 }
 
-inline __device__ float phong(const glm::vec3& E, const glm::vec3& N, const glm::vec3& L, float shiningness){
-    return 1.f;
+inline __device__ float phong(const glm::vec3& E, const glm::vec3& N, const glm::vec3& L, float Ks,float shininess){
+    float dot_size = dot(L, N);
+    
+    glm::vec3 R = 2*dot_size*N - L; 
+    float out = Ks*pow(max(dot(E,R),0.f),shininess);
+    return out;
 }
 
 
@@ -135,7 +139,14 @@ extern "C" __global__ void __closesthit__radiance() {
         norm.z *= -1;
         *(prd->uv) = si.uv;
         if(is_visible){
-            *(prd->view) = 5.f*si.diffuseColor*lambert(si.Ns,L);
+            glm::vec3 light_color = {1,1,1};
+            // if(optixLaunchParams.light_data.count > 0){
+            //     light_color = optixLaunchParams.light_data.data[0].color;
+            // }
+            *(prd->view) = si.diffuseColor*lambert(si.Ns,L) + phong(-rayDir,si.Ns,L,0.5f,1.5f)*light_color;
+            prd->view->x = min(1.f, (prd->view)->x);
+            prd->view->y = min(1.f, (prd->view)->y);
+            prd->view->z = min(1.f, (prd->view)->z);
         }else{
             *(prd->view) = {0.f,0.f,0.f};
         }
