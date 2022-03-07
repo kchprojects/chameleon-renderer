@@ -29,7 +29,7 @@ include(${CMAKE_MODULE_PATH}/nvcuda_compile_ptx.cmake)
 mark_as_advanced(CUDA_SDK_ROOT_DIR)
 
 # ------------------------------------------------------------------
-# add gdt
+# add glm
 # ------------------------------------------------------------------
 set(glm_dir ${PROJECT_SOURCE_DIR}/thirdparty/glm)
 # ------------------------------------------------------------------
@@ -61,7 +61,7 @@ set(OPTRENDER_SOURCES ${ALL_SOURCES})
 add_library(${PROJECT_NAME} ${OPTRENDER_SOURCES})
 
 target_include_directories(
-  ${PROJECT_NAME} PUBLIC ${gdt_dir} ${OptiX_INCLUDE} ${OpenCV_INCLUDE_DIRS}
+  ${PROJECT_NAME} PUBLIC ${OptiX_INCLUDE} ${OpenCV_INCLUDE_DIRS}
                          include thirdparty)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 

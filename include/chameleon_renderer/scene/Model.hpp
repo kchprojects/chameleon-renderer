@@ -8,7 +8,6 @@
 #include <opencv2/opencv.hpp>
 
 namespace chameleon {
-// using namespace gdt;
 
 /*! a simple indexed triangle mesh that our sample renderer will
     render */

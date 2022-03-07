@@ -34,7 +34,7 @@ nvcuda_compile_ptx(
   "-Wno-deprecated-gpu-targets"
   "-I${OptiX_INCLUDE}"
   "-I${SHADERS_DEPENDENCY_DIRS}"
-  "-I${gdt_dir}")
+  "-I${glm_dir}")
 
 message("SSSS${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${PTX_SOURCES})

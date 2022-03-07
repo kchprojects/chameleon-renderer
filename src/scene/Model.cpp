@@ -146,15 +146,11 @@ int loadTexture(Model& model,
     if (!image.empty()) {
         if (image.channels() == 1) {
             cv::cvtColor(image, image, cv::COLOR_GRAY2BGRA);
-            PING;
         } else if (image.channels() == 3) {
             cv::cvtColor(image, image, cv::COLOR_BGR2BGRA);
-            PING;
         } else {
             std::cout << "type : " << image.type() << std::endl;
             std::cout << "channels : " << image.channels() << std::endl;
-
-            PING;
         }
         textureID = (int)model.textures.size();
         Texture texture;
