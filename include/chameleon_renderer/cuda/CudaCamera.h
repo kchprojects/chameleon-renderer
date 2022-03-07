@@ -2,17 +2,17 @@
 #include <chameleon_renderer/utils/math_utils.hpp>
 namespace chameleon {
 struct CudaCamera {
-    mat4f obj_mat;
-    mat4f obj_mat_inverse;
-    mat3f camera_mat;
-    mat3f camera_mat_inverse;
-    vec3f pos;
+    glm::mat4 obj_mat;
+    glm::mat4 obj_mat_inverse;
+    glm::mat3 camera_mat;
+    glm::mat3 camera_mat_inverse;
+    glm::vec3 pos;
     vec2i res;
 };
 
 #ifdef __CUDA_ARCH__
-inline vec3f __device__ get_pos(mat4f view_matrix) {
-    return {view_matrix.r1.w, view_matrix.r2.w, view_matrix.r3.w};
+inline glm::vec3 __device__ get_pos(const glm::mat4& view_matrix) {
+    return {view_matrix[0][4], view_matrix[1][4], view_matrix[2][4]};
 }
 #endif
 }  // namespace chameleon

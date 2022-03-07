@@ -7,9 +7,6 @@
 #include <memory>
 
 namespace chameleon {
-static const glm::vec2 base_A = {0.f, 0.f};
-static const glm::vec2 base_B = {1.f, 0.f};
-static const glm::vec2 base_C = {0.5f, std::sqrt(0.75f)};
 
 // TODO: adjust for general MaterialData from Measurement copy
 // template<typename material_model_t>

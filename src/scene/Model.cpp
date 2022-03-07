@@ -41,9 +41,9 @@ static int addVertex(TriangleMesh& mesh,
     if (knownVertices.find(idx) != knownVertices.end())
         return knownVertices[idx];
 
-    const vec3f* vertex_array = (const vec3f*)attributes.vertices.data();
-    const vec3f* normal_array = (const vec3f*)attributes.normals.data();
-    const vec2f* texcoord_array = (const vec2f*)attributes.texcoords.data();
+    const glm::vec3* vertex_array = (const glm::vec3*)attributes.vertices.data();
+    const glm::vec3* normal_array = (const glm::vec3*)attributes.normals.data();
+    const glm::vec2* texcoord_array = (const glm::vec2*)attributes.texcoords.data();
 
     int newID = (int)mesh.vertex.size();
     knownVertices[idx] = newID;
@@ -146,26 +146,21 @@ int loadTexture(Model& model,
     if (!image.empty()) {
         if (image.channels() == 1) {
             cv::cvtColor(image, image, cv::COLOR_GRAY2BGRA);
-            PING;
         } else if (image.channels() == 3) {
             cv::cvtColor(image, image, cv::COLOR_BGR2BGRA);
-            PING;
         } else {
             std::cout << "type : " << image.type() << std::endl;
             std::cout << "channels : " << image.channels() << std::endl;
-
-            PING;
         }
         textureID = (int)model.textures.size();
         Texture texture;
         texture.id = textureID;
-        texture.resolution = (image.cols, image.rows);
+        texture.resolution = {image.cols, image.rows};
         texture.image = image;
 
         model.textures.push_back(std::move(texture));
     } else {
-        std::cout << GDT_TERMINAL_RED << "Could not load texture from "
-                  << fileName << "!" << GDT_TERMINAL_DEFAULT << std::endl;
+        spdlog::error("Could not load texture from {} !",fileName);
     }
 
     knownTextures[inFileName] = textureID;
@@ -221,7 +216,8 @@ Model loadOBJ(const std::string& objFile) {
                           addVertex(mesh, attributes, idx1, knownVertices),
                           addVertex(mesh, attributes, idx2, knownVertices));
                 mesh.index.push_back(idx);
-                mesh.diffuse = (const vec3f&)materials[materialID].diffuse;
+                //TOOD: ?????
+                mesh.diffuse = (const glm::vec3&) materials[materialID].diffuse;
                 // TODO:Textures
                 mesh.diffuseTextureID = loadTexture(
                     model, knownTextures, materials[materialID].diffuse_texname,

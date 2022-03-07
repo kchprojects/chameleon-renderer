@@ -25,7 +25,7 @@ base_program_create(OptixProgramGroupKind group_kind,
                                         &sizeof_log,
                                         PG));
     if (sizeof_log > 1)
-        PRINT(log);
+        spdlog::info(log);
 }
 
 OptixPrograms::OptixPrograms() = default;
@@ -91,7 +91,7 @@ OptixPrograms::add_ray(const std::string& label,
                                         &hitgroupPGs[ray2index[label]]));
 
     if (sizeof_log > 1)
-        PRINT(log);
+        spdlog::info(log);
     return *this;
 }
 
@@ -122,7 +122,7 @@ OptixPrograms::get_pipeline(
                                     &pipeline));
 
     if (sizeof_log > 1)
-        PRINT(log);
+        spdlog::info(log);
     OPTIX_CHECK(
         optixPipelineSetStackSize(/* [in] The pipeline to configure the
                                      stack size for */
@@ -143,7 +143,7 @@ OptixPrograms::get_pipeline(
                                      graph passed to trace. */
                                   1));
     if (sizeof_log > 1)
-        PRINT(log);
+        spdlog::info(log);
     return pipeline;
 }
 
@@ -201,9 +201,9 @@ OptixPrograms::buildSBT(const OptixStaticScene& scene)
                 rec.data.hasTexture = false;
             }
             rec.data.index = (vec3i*)buffers.index[meshID].d_pointer();
-            rec.data.vertex = (vec3f*)buffers.vertex[meshID].d_pointer();
-            rec.data.normal = (vec3f*)buffers.normal[meshID].d_pointer();
-            rec.data.texcoord = (vec2f*)buffers.texcoord[meshID].d_pointer();
+            rec.data.vertex = (glm::vec3*)buffers.vertex[meshID].d_pointer();
+            rec.data.normal = (glm::vec3*)buffers.normal[meshID].d_pointer();
+            rec.data.texcoord = (glm::vec<2,float>*)buffers.texcoord[meshID].d_pointer();
             hitgroupRecords.push_back(rec);
         }
     }

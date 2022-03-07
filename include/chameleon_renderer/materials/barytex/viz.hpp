@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <chameleon_renderer/utils/math_utils.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace chameleon {

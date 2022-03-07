@@ -4,16 +4,16 @@ namespace chameleon {
 
 namespace photometry_render {
 struct RadiationRayDataBase {
-    vec3f normal;
-    vec3f uv;
-    vec3f view;
+    glm::vec3 normal;
+    glm::vec3 uv;
+    glm::vec3 view;
     uint8_t mask;
 };
 
 struct RadiationRayData {
-    vec3f* normal;
-    vec3f* uv;
-    vec3f* view;
+    glm::vec3* normal;
+    glm::vec3* uv;
+    glm::vec3* view;
     uint8_t* mask;
 };
 

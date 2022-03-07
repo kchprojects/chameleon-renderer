@@ -1,6 +1,6 @@
 #pragma once
 #include <chameleon_renderer/cuda/TriangleMeshSBTData.h>
-#include <chameleon_renderer/utils/optix7.hpp>
+#include <chameleon_renderer/utils/optix7.h>
 
 namespace chameleon {
 

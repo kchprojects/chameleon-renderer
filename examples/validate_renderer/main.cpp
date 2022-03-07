@@ -46,14 +46,17 @@ Eigen::Matrix4f translation(const Eigen::Vector3f& t_vec) {
     return translation(t_vec.x(), t_vec.y(), t_vec.z());
 }
 
-Eigen::Matrix4f rotation(float rx, float ry, float rz) {
-    Eigen::Matrix4f out = Eigen::Matrix4f::Identity();
+Eigen::Matrix3f rotation3D(float rx, float ry, float rz) {
     Eigen::Matrix3f m;
     m = Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX()) *
         Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) *
         Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ());
 
-    out.block<3, 3>(0, 0) = m;
+    return m;
+}
+Eigen::Matrix4f rotation(float rx, float ry, float rz) {
+    Eigen::Matrix4f out = Eigen::Matrix4f::Identity();
+    out.block<3, 3>(0, 0) = rotation3D(rx,ry,rz);
     return out;
 }
 
@@ -78,9 +81,14 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
 }
 
 extern "C" int main(int argc, char** argv) {
-    std::string obj_path = "/home/karelch/Data/witte/tile.obj";
+    bool show_movement = true;
+    bool show_light_movement = false;
+    std::string obj_path =
+        "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/models/"
+        "monkey.obj";
     std::string calib_path =
-        "/home/karelch/Data/witte/render_test/2_6/calib_mono.json";
+        "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/"
+        "validate_renderer/cameras/calib1.json";
     const std::string cam_label = "main_camera";
     if (argc > 1) {
         obj_path = argv[1];
@@ -97,47 +105,54 @@ extern "C" int main(int argc, char** argv) {
     renderer.setup();
     renderer.setup_scene(scene);
     renderer.add_camera(cam_label,
-                        PhotometryCamera({2064, 1544}, Json::parse(ifs)));
+                        PhotometryCamera({4096, 2176}, Json::parse(ifs)));
 
-    eigen_utils::Mat4<float> coord_correction = rotation(90, 0, 0);
- 
-    std::vector<std::shared_ptr<ILight>> lights;
-    lights.push_back(std::make_shared<PointLight>(pos));
-    // std::vector<eigen_utils::Mat4<float>> mats = get_view_matrices();
-    // renderer.photometry_camera(cam_label).set_lights(get_lights());
-    // cv::Mat out;
+    
+   // // cv::Mat out;
     cv::namedWindow("view", cv::WINDOW_NORMAL);
-    cv::namedWindow("photo", cv::WINDOW_NORMAL);
+    // cv::namedWindow("photo", cv::WINDOW_NORMAL);
     bool should_end = false;
     renderer.photometry_camera(cam_label);
-    for (int i = 18; i < 20; ++i) {
-        // int i = 2;
-        auto mats = load_mats(
-            "/home/karelch/Data/witte/render_test/2_6/calib_detections/"
-            "detections_" +
-                std::to_string(i) + ".json",
-            coord_correction);
-        cv::Mat photo = cv::imread(
-            "/home/karelch/Data/witte/render_test/2_6/undist_calib/" +
-                std::to_string(i) + ".png",
-            cv::IMREAD_COLOR);
-        for (const auto& [_, m] : mats) {
-            // auto m = mats[60];
-            // renderer.photometry_camera(cam_label).move_to(m);
-            // std::cout << m << std::endl;
+    eigen_utils::Mat4<float> view_mat =
+        translation(0, 0, 50) * rotation(0, M_PI, 0);
+    
+    // auto m = mats[60];
+    renderer.photometry_camera(cam_label).move_to(view_mat);
+    // std::cout << m << std::endl;
+    eigen_utils::Vec3<float> pos;
+    pos << 50,0,0; 
+    if(!show_light_movement){
+        std::vector<std::shared_ptr<ILight>> lights;
+        lights.push_back(std::make_shared<PointLight>(rotation3D(0, M_PI/4, 0) * pos));
+        renderer.photometry_camera(cam_label).set_lights(lights);
+    }
+    while (!should_end) {
+        for (float rot_y = 0; rot_y < 2*M_PI; rot_y += M_PI / 32) {
+            if(show_movement){
+                renderer.photometry_camera(cam_label).move_by(rotation(0, M_PI / 32, 0));
+            }
+            if(show_light_movement){
+                std::vector<std::shared_ptr<ILight>> lights;
+                lights.push_back(std::make_shared<PointLight>(rotation3D(0, rot_y, 0) * pos));
+                renderer.photometry_camera(cam_label).set_lights(lights);
+            }
+    
+            
+    
             auto out = renderer.render(cam_label);
-            cv::Mat view = out.view.get_cv_mat();
-            cv::normalize(view, view, 0, 255, cv::NORM_MINMAX, CV_8UC3);
-            cv::imshow("view", view);
-            cv::Mat nml = out.normal_map.get_cv_mat();
-            nml.convertTo(nml, CV_8UC3, 127, 127);
-            cv::cvtColor(nml, nml, cv::COLOR_BGR2RGB);
-            cv::Mat mask = out.mask.get_cv_mat();
-            cv::addWeighted(view, 0.5, photo, 0.5, 0, view);
-            view.copyTo(photo, mask);
-            cv::imshow("photo", photo);
 
-            char k = cv::waitKey() & 0xFF;
+            cv::Mat view = out.view.get_cv_mat();
+            // cv::normalize(view, view, 0, 255, cv::NORM_MINMAX, CV_8UC3);
+            // cv::imshow("view", view);
+            // cv::Mat nml = out.normal_map.get_cv_mat();
+            // nml.convertTo(nml, CV_8UC3, 127, 127);
+            // cv::cvtColor(nml, nml, cv::COLOR_BGR2RGB);
+            cv::Mat mask = out.mask.get_cv_mat();
+            // cv::addWeighted(view, 0.5, photo, 0.5, 0, view);
+            // view.copyTo(photo, mask);
+            cv::imshow("view", view);
+
+            char k = cv::waitKey(10) & 0xFF;
             switch (k) {
                 case char(27):
                     should_end = true;
@@ -145,14 +160,8 @@ extern "C" int main(int argc, char** argv) {
                 default:
                     break;
             }
-            if (should_end) {
-                break;
-            }
-            // cv::waitKey();
         }
-        cv::imwrite("data_" + std::to_string(i) + ".png", photo);
     }
-
     return 0;
 }  // namespace chameleon
 

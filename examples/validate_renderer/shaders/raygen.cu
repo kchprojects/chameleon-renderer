@@ -8,16 +8,19 @@ inline __device__ photometry_render::RadiationRayDataBase cast_ray(
     const chameleon::CudaCamera& camera,
     photometry_renderer::ray_t ray_type) {
     // generate ray direction
-    glm::vec3 rayDir = normalize(transform(camera.camera_mat_inverse, ray_base));
-
-    rayDir = normalize(transform_vec(camera.obj_mat, rayDir));
+    glm::vec3 rayDir = camera.camera_mat_inverse * ray_base;
+    
+    rayDir = glm::normalize(transform_vec(camera.obj_mat, rayDir));
+    rayDir.y *= -1;
+    // printf("%f %f %f \n",rayDir.x,rayDir.y,rayDir.z);
+    
     photometry_render::RadiationRayDataBase rdb;
     photometry_render::RadiationRayData prd = {&rdb.normal, &rdb.uv, &rdb.view,
                                                &rdb.mask};
-
-    uint32_t u0, u1;
-    packPointer(&prd, u0, u1);
-    optixTrace(
+    
+                                               uint32_t u0, u1;
+                                               packPointer(&prd, u0, u1);
+                                               optixTrace(
         optixLaunchParams.traversable, {camera.pos.x,camera.pos.y,camera.pos.z}, {rayDir.x,rayDir.y,rayDir.z},
         0.f,    // tmin
         1e20f,  // tmax
@@ -28,6 +31,7 @@ inline __device__ photometry_render::RadiationRayDataBase cast_ray(
         unsigned(photometry_renderer::ray_t::RAY_TYPE_COUNT),  // SBT stride
         unsigned(ray_type),                                    // missSBTIndex
         u0, u1);
+    // rdb.view = rayDir;
     return rdb;
 }
 //------------------------------------------------------------------------------
@@ -78,6 +82,11 @@ extern "C" __global__ void __raygen__renderFrame() {
         optixLaunchParams.layers.uv_map[fbIndex] = rdb.uv;
         optixLaunchParams.layers.view[fbIndex] = rdb.view;
     }
+    // rdb.view.z = 0;
+    // rdb.view.y = (rdb.view.y + 1.f)/2.f;
+    // rdb.view.x = (rdb.view.x + 1.f)/2.f;
+    // optixLaunchParams.layers.view[fbIndex] = rdb.view;
+    // optixLaunchParams.layers.view[fbIndex] = {ix/float(camera.res.x),iy/float(camera.res.y),0};
 }
 
 }  // namespace chameleon

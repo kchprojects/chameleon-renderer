@@ -1,6 +1,6 @@
 #pragma once
 #include <chameleon_renderer/cuda/CUDABuffer.hpp>
-#include <chameleon_renderer/utils/optix7.hpp>
+#include <chameleon_renderer/utils/optix7.h>
 
 #include <iostream>
 #include <map>

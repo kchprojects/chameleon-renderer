@@ -5,6 +5,7 @@ namespace photometry_renderer {
 enum class ray_t
 {
     RADIANCE = 0,
+    SHADOW = 1,
     RAY_TYPE_COUNT
 };
 }

@@ -13,10 +13,10 @@ enum LightType
 struct CudaLight
 {
     LightType l_type;
-    vec3f position;
-    vec3f direction;
+    glm::vec3 position;
+    glm::vec3 direction;
     float intensity;
-    vec3f color;
+    glm::vec3 color;
 
 };
 

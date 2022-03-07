@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(validate_charruco)
+project(validate_renderer)
 
 set(SHADERS
     # Core shaders.
@@ -37,7 +37,7 @@ nvcuda_compile_ptx(
   "-I${glm_dir}"
 )
 
-message("SSSS${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+message("{CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
                                ${PTX_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC OptixRender)

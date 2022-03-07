@@ -1,13 +1,13 @@
 #pragma once
 #include <chameleon_renderer/cuda/CUDABuffer.hpp>
-#include <chameleon_renderer/utils/cv2gdt.hpp>
+#include <chameleon_renderer/utils/cv2glm.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace chameleon {
 template<typename IMG_T>
 struct ImageLayer
 {
-    using buffer_t = equivalent::cv2gdt_v<IMG_T>;
+    using buffer_t = equivalent::cv2glm_v<IMG_T>;
     size_t res_x = 0;
     size_t res_y = 0;
     CUDABuffer cuda_buffer;
@@ -39,7 +39,7 @@ struct ImageLayer
 template<typename IMG_T>
 struct InputImageLayer
 {
-    using buffer_t = equivalent::cv2gdt_v<IMG_T>;
+    using buffer_t = equivalent::cv2glm_v<IMG_T>;
     size_t res_x = 0;
     size_t res_y = 0;
     CUDABuffer cuda_buffer;
