@@ -46,14 +46,17 @@ Eigen::Matrix4f translation(const Eigen::Vector3f& t_vec) {
     return translation(t_vec.x(), t_vec.y(), t_vec.z());
 }
 
-Eigen::Matrix4f rotation(float rx, float ry, float rz) {
-    Eigen::Matrix4f out = Eigen::Matrix4f::Identity();
+Eigen::Matrix3f rotation3D(float rx, float ry, float rz) {
     Eigen::Matrix3f m;
     m = Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX()) *
         Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) *
         Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ());
 
-    out.block<3, 3>(0, 0) = m;
+    return m;
+}
+Eigen::Matrix4f rotation(float rx, float ry, float rz) {
+    Eigen::Matrix4f out = Eigen::Matrix4f::Identity();
+    out.block<3, 3>(0, 0) = rotation3D(rx,ry,rz);
     return out;
 }
 
@@ -78,6 +81,8 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
 }
 
 extern "C" int main(int argc, char** argv) {
+    bool show_movement = true;
+    bool show_light_movement = false;
     std::string obj_path =
         "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/models/"
         "monkey.obj";
@@ -102,23 +107,38 @@ extern "C" int main(int argc, char** argv) {
     renderer.add_camera(cam_label,
                         PhotometryCamera({4096, 2176}, Json::parse(ifs)));
 
-    // // eigen_utils::Mat4<float> coord_correction = rotation(90,0,0);
-    // // std::vector<eigen_utils::Mat4<float>> mats = get_view_matrices();
-    // // renderer.photometry_camera(cam_label).set_lights(get_lights());
-    // // cv::Mat out;
+    
+   // // cv::Mat out;
     cv::namedWindow("view", cv::WINDOW_NORMAL);
     // cv::namedWindow("photo", cv::WINDOW_NORMAL);
     bool should_end = false;
     renderer.photometry_camera(cam_label);
     eigen_utils::Mat4<float> view_mat =
         translation(0, 0, 50) * rotation(0, M_PI, 0);
-
+    
     // auto m = mats[60];
     renderer.photometry_camera(cam_label).move_to(view_mat);
     // std::cout << m << std::endl;
+    eigen_utils::Vec3<float> pos;
+    pos << 50,0,0; 
+    if(!show_light_movement){
+        std::vector<std::shared_ptr<ILight>> lights;
+        lights.push_back(std::make_shared<PointLight>(rotation3D(0, M_PI/4, 0) * pos));
+        renderer.photometry_camera(cam_label).set_lights(lights);
+    }
     while (!should_end) {
         for (float rot_y = 0; rot_y < 2*M_PI; rot_y += M_PI / 32) {
-            renderer.photometry_camera(cam_label).move_by(rotation(0, M_PI / 32, 0));
+            if(show_movement){
+                renderer.photometry_camera(cam_label).move_by(rotation(0, M_PI / 32, 0));
+            }
+            if(show_light_movement){
+                std::vector<std::shared_ptr<ILight>> lights;
+                lights.push_back(std::make_shared<PointLight>(rotation3D(0, rot_y, 0) * pos));
+                renderer.photometry_camera(cam_label).set_lights(lights);
+            }
+    
+            
+    
             auto out = renderer.render(cam_label);
 
             cv::Mat view = out.view.get_cv_mat();

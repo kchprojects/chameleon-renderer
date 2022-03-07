@@ -1,11 +1,11 @@
 // #include <GL/gl.h>
 
+#include <chameleon_renderer/optix/OptixScene.hpp>
+#include <chameleon_renderer/renderer/PhotometryRenderer.hpp>
 #include <chrono>
 #include <fstream>
 #include <memory>
 #include <opencv2/opencv.hpp>
-#include <chameleon_renderer/optix/OptixScene.hpp>
-#include <chameleon_renderer/renderer/PhotometryRenderer.hpp>
 
 // #define SHOW_SHADOWS
 namespace chameleon {
@@ -62,9 +62,8 @@ Eigen::Matrix4f rotation(const Eigen::Vector3f& r_vec) {
 }
 
 std::map<int, eigen_utils::Mat4<float>> load_mats(
-    std::string path,
-    eigen_utils::Mat4<float> correct_mat =
-        eigen_utils::Mat4<float>::Identity()) {
+    std::string path, eigen_utils::Mat4<float> correct_mat =
+                          eigen_utils::Mat4<float>::Identity()) {
     std::map<int, eigen_utils::Mat4<float>> out;
     std::ifstream ifs(path);
     nlohmann::json j;
@@ -72,8 +71,8 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
     for (auto obj : j) {
         eigen_utils::Mat4<float> new_mat;
         from_json(obj.at("mat"), new_mat);
-        new_mat = (new_mat* correct_mat).inverse();
-        out[obj.at("id")] = new_mat ;
+        new_mat = (new_mat * correct_mat).inverse();
+        out[obj.at("id")] = new_mat;
     }
     return out;
 }
@@ -100,7 +99,10 @@ extern "C" int main(int argc, char** argv) {
     renderer.add_camera(cam_label,
                         PhotometryCamera({2064, 1544}, Json::parse(ifs)));
 
-    eigen_utils::Mat4<float> coord_correction = rotation(90,0,0);
+    eigen_utils::Mat4<float> coord_correction = rotation(90, 0, 0);
+ 
+    std::vector<std::shared_ptr<ILight>> lights;
+    lights.push_back(std::make_shared<PointLight>(pos));
     // std::vector<eigen_utils::Mat4<float>> mats = get_view_matrices();
     // renderer.photometry_camera(cam_label).set_lights(get_lights());
     // cv::Mat out;
@@ -113,7 +115,8 @@ extern "C" int main(int argc, char** argv) {
         auto mats = load_mats(
             "/home/karelch/Data/witte/render_test/2_6/calib_detections/"
             "detections_" +
-            std::to_string(i) + ".json",coord_correction);
+                std::to_string(i) + ".json",
+            coord_correction);
         cv::Mat photo = cv::imread(
             "/home/karelch/Data/witte/render_test/2_6/undist_calib/" +
                 std::to_string(i) + ".png",
@@ -149,7 +152,7 @@ extern "C" int main(int argc, char** argv) {
         }
         cv::imwrite("data_" + std::to_string(i) + ".png", photo);
     }
-    
+
     return 0;
 }  // namespace chameleon
 

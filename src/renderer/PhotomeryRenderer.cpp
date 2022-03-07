@@ -54,6 +54,8 @@ void PhotometryRenderer::setup() {
     PING programs.add_raygen_program("renderFrame", raygen_module);
     programs.add_ray("radiance", {miss_module}, {anyhit_module},
                      {closest_hit_module});
+    programs.add_ray("shadow", {miss_module}, {anyhit_module},
+                     {closest_hit_module});
     // programs.add_ray("shadow", {miss_module}, {anyhit_module},
     //                  {closest_hit_module});
     PING pipeline =
