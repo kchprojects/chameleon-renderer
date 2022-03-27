@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+*.pyc 
 
 # Compiled Object files
 *.slo
@@ -33,4 +34,7 @@
 #folders
 build
 data
+__pycache__
 .vscode
+
+*.gif

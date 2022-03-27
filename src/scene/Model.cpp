@@ -9,24 +9,30 @@
 #include <set>
 
 namespace std {
+
 inline bool operator<(const tinyobj::index_t& a, const tinyobj::index_t& b) {
+
     if (a.vertex_index < b.vertex_index)
         return true;
+
     if (a.vertex_index > b.vertex_index)
         return false;
 
     if (a.normal_index < b.normal_index)
         return true;
+
     if (a.normal_index > b.normal_index)
         return false;
 
     if (a.texcoord_index < b.texcoord_index)
         return true;
+
     if (a.texcoord_index > b.texcoord_index)
         return false;
 
     return false;
 }
+
 }  // namespace std
 
 namespace chameleon {
@@ -166,6 +172,7 @@ int loadTexture(Model& model,
     knownTextures[inFileName] = textureID;
     return textureID;
 }
+
 
 Model loadOBJ(const std::string& objFile) {
     Model model;

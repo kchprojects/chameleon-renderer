@@ -42,6 +42,7 @@ public:
     const eigen_utils::Mat3<float>& inv_camera_matrix() const;
 
     eigen_utils::Vec3<float> position() const;
+    eigen_utils::Mat4<float> object_matrix() const;
 
     CudaCamera get_cuda() const;
 };

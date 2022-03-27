@@ -83,8 +83,8 @@ const PhotometryRenderer::OutputLayers& PhotometryRenderer::render(
         auto& camera = photometry_cameras[camera_label];
         auto res = camera.resolution();
         out_layers.resize(res(0), res(1));
-        spdlog::info("Start render");
-        TICK;
+        // spdlog::info("Start render");
+        // TICK;
 
         launch_params.layers = out_layers.get_cuda();
         launch_params.camera = camera.get_cuda();
@@ -95,7 +95,7 @@ const PhotometryRenderer::OutputLayers& PhotometryRenderer::render(
         // update_scene();
         launch_params_buff.upload(&launch_params, 1);
         out_layers.clear();
-        TICK;
+        // TICK;
         // OPTIX_CHECK(
         optixLaunch(/*! pipeline we're launching launch: */
                     pipeline, OptixContext::get()->stream,
@@ -106,14 +106,14 @@ const PhotometryRenderer::OutputLayers& PhotometryRenderer::render(
                     res(0), res(1), 1);
         // );
         CUDA_SYNC_CHECK();
-        TOCK;
-        spdlog::info("Render done");
+        // TOCK;
+        // spdlog::info("Render done");
     } else {
         spdlog::error("[ {} ] unsupported camera: {}", __PRETTY_FUNCTION__,
                       camera_label);
         throw std::invalid_argument("unsupported camera: " + camera_label);
     }
-    PING;
+    // PING;
     return out_layers;
 }
 

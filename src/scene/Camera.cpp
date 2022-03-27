@@ -24,7 +24,7 @@ namespace chameleon {
         : _resolution(std::move(resolution))
     {
         set_camera_matrix(std::move(camera_matrix));
-        move_to(eigen_utils::Mat4<float>::Identity());
+        move_to(view_matrix);
     }
 
     CalibratedCamera::CalibratedCamera(eigen_utils::Vec2<int> resolution, Json j)
@@ -93,6 +93,10 @@ namespace chameleon {
                  _object_matrix(1, 3),
                  _object_matrix(2, 3) };
     }
+    eigen_utils::Mat4<float> CalibratedCamera::object_matrix() const{
+        return _object_matrix;
+    }
+
 
     CudaCamera CalibratedCamera::get_cuda() const
     {
@@ -104,8 +108,6 @@ namespace chameleon {
         out.obj_mat = eigen_utils::from_eigen_m4(_object_matrix);
         out.obj_mat_inverse =
             eigen_utils::from_eigen_m4(_object_matrix_inverse);
-        std::cout<<glm::to_string(out.camera_mat)<<std::endl;
-        std::cout<<glm::to_string(out.camera_mat_inverse)<<std::endl;
         out.pos = eigen_utils::from_eigen_homogenus(
             _object_matrix * eigen_utils::Vec4<float>(0, 0, 0, 1));
         //spdlog::info("{}, {}, {}",out.pos.x, out.pos.y, out.pos.z);

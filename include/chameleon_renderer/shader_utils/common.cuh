@@ -1,8 +1,8 @@
 #pragma once
-#include <cuda_runtime.h>
-#include <optix_device.h>
 #include <chameleon_renderer/cuda/LaunchParams.h>
 #include <chameleon_renderer/cuda/TriangleMeshSBTData.h>
+#include <cuda_runtime.h>
+#include <optix_device.h>
 
 #include <chameleon_renderer/utils/math_utils.hpp>
 
@@ -21,8 +21,7 @@ static __forceinline__ __device__ void* unpackPointer(uint32_t i0,
     return ptr;
 }
 
-static __forceinline__ __device__ void packPointer(void* ptr,
-                                                   uint32_t& i0,
+static __forceinline__ __device__ void packPointer(void* ptr, uint32_t& i0,
                                                    uint32_t& i1) {
     const uint64_t uptr = reinterpret_cast<uint64_t>(ptr);
     i0 = uptr >> 32;
@@ -36,25 +35,41 @@ static __forceinline__ __device__ T* getPRD() {
     return reinterpret_cast<T*>(unpackPointer(u0, u1));
 }
 
-inline __device__ glm::vec3 transform(const glm::mat3& mat, const glm::vec3& vec) {
-    return mat*vec;
+inline __device__ glm::vec3 transform(const glm::mat3& mat,
+                                      const glm::vec3& vec) {
+    return mat * vec;
 }
 inline __device__ float dot(const glm::vec4& a, const glm::vec4& b) {
-    return glm::dot(a,b);
+    return glm::dot(a, b);
 }
-inline __device__ glm::vec4 transform(const glm::mat4& mat, const glm::vec4& vec) {
-    return mat*vec;
+inline __device__ glm::vec4 transform(const glm::mat4& mat,
+                                      const glm::vec4& vec) {
+    return mat * vec;
 }
 
-inline __device__ glm::vec3 transform_vec(const glm::mat4& mat, const glm::vec3& vec) {
+inline __device__ glm::vec3 transform_vec(const glm::mat4& mat,
+                                          const glm::vec3& vec) {
     glm::vec4 vec_4d = {vec.x, vec.y, vec.z, 0.f};
     vec_4d = transform(mat, vec_4d);
     return {vec_4d.x, vec_4d.y, vec_4d.z};
 }
-inline __device__ glm::vec3 transform_point(const glm::mat4& mat, const glm::vec3& vec) {
+inline __device__ glm::vec3 transform_point(const glm::mat4& mat,
+                                            const glm::vec3& vec) {
     glm::vec4 vec_4d = {vec.x, vec.y, vec.z, 1.f};
     vec_4d = transform(mat, vec_4d);
     return {vec_4d.x, vec_4d.y, vec_4d.z};
+}
+
+inline __device__ void print_mat(const glm::mat4& mat) {
+    std::printf("%f\t%f\t%f\t%f\n"
+    "%f\t%f\t%f\t%f\n"
+    "%f\t%f\t%f\t%f\n"
+    "%f\t%f\t%f\t%f\n\n",
+    mat[0][0],mat[1][0],mat[2][0],mat[3][0],
+    mat[0][1],mat[1][1],mat[2][1],mat[3][1],
+    mat[0][2],mat[1][2],mat[2][2],mat[3][2],
+    mat[0][3],mat[1][3],mat[2][3],mat[3][3]
+    );
 }
 
 struct SurfaceInfo {
@@ -97,25 +112,24 @@ inline __device__ SurfaceInfo get_surface_info() {
     // face-forward and normalize normals
     // ------------------------------------------------------------------
     const glm::vec3 rayDir = {optixGetWorldRayDirection().x,
-                          optixGetWorldRayDirection().y,
-                          optixGetWorldRayDirection().z};
+                              optixGetWorldRayDirection().y,
+                              optixGetWorldRayDirection().z};
 
     // if (dot(rayDir, Ng) > 0.f)
     //     Ng = -Ng;
     Ng = normalize(Ng);
 
-    if (dot(Ng, Ns) < 0.f)
-        Ns -= 2.f * dot(Ng, Ns) * Ng;
+    if (dot(Ng, Ns) < 0.f) Ns -= 2.f * dot(Ng, Ns) * Ng;
     Ns = normalize(Ns);
 
     // ------------------------------------------------------------------
     // compute shadow
     // ------------------------------------------------------------------
     const glm::vec3 surfPos = (1.f - u - v) * sbtData.vertex[index.x] +
-                          u * sbtData.vertex[index.y] +
-                          v * sbtData.vertex[index.z];
+                              u * sbtData.vertex[index.y] +
+                              v * sbtData.vertex[index.z];
 
-    glm::vec<2,float> tc;
+    glm::vec<2, float> tc;
     if (sbtData.texcoord) {
         tc = (1.f - u - v) * sbtData.texcoord[index.x] +
              u * sbtData.texcoord[index.y] + v * sbtData.texcoord[index.z];
@@ -130,10 +144,10 @@ inline __device__ SurfaceInfo get_surface_info() {
     glm::vec3 diffuseColor = sbtData.color;
     if (sbtData.hasTexture && sbtData.texcoord) {
         float4 fromTexture = tex2D<float4>(sbtData.texture, tc.x, tc.y);
-        diffuseColor *= glm::vec3(fromTexture.x,fromTexture.y,fromTexture.z);
+        diffuseColor *= glm::vec3(fromTexture.x, fromTexture.y, fromTexture.z);
     }
     // TODO::differentiate meshes
-    return {Ns, Ng, surfPos, {tc.x, tc.y, 0},diffuseColor};
+    return {Ns, Ng, surfPos, {tc.x, tc.y, 0}, diffuseColor};
 }
 
 }  // namespace chameleon
