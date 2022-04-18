@@ -46,6 +46,7 @@ struct InputImageLayer
 
 
     InputImageLayer()=default;
+    InputImageLayer(const InputImageLayer&)=delete;
     InputImageLayer(const cv::Mat& img){
         upload_cv_mat(img);
     }
@@ -65,14 +66,22 @@ struct InputImageLayer
 
     void upload_cv_mat(const cv::Mat_<IMG_T>& img)
     {
-        if ( res_x != size_t(img.cols) || res_y != size_t(img.rows)){
-            resize(img.cols,img.rows);
+        res_x = img.cols;
+        res_y = img.rows;
+        std::vector<glm::vec3>img_data(img.cols*img.rows);
+        for(int i = 0; i < img.cols*img.rows; ++i){
+            img_data[i].x = img(i)[0];
+            img_data[i].y = img(i)[1];
+            img_data[i].z = img(i)[2];
+            if(img_data[i].x > 255){
+                std::cout<<img_data[i].x << " " << img_data[i].y << " " << img_data[i].z << std::endl;
+            }
         }
-        cuda_buffer.upload(reinterpret_cast<const buffer_t*>(img.data), res_x * res_y);
+        cuda_buffer.alloc_and_upload(img_data);
     }
 
     ~InputImageLayer(){
-        clear();
+        // clear();
     }
 };
 

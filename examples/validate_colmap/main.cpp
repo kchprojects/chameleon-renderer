@@ -83,11 +83,9 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
 
 struct Args {
     fs::path obj_path =
-        "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/models/"
-        "pcb_new.obj";
+        "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
     fs::path views_path =
-        "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/"
-        "validate_colmap/cameras/cameras.json";
+        "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
 
     Args() = default;
     Args(int argc, char** argv) {
@@ -149,7 +147,7 @@ extern "C" int main(int argc, char** argv) {
     correction(0,0) = -1;
     correction(1,1) = 1;
     correction(2,2) = 1;
-    sm.obj_mat = correction;
+    sm.obj_mat = correction; //* rotation(M_PI/2,0,0);
     scene.add_model(sm);
 
     PhotometryRenderer renderer;
@@ -163,14 +161,14 @@ extern "C" int main(int argc, char** argv) {
     // cv::namedWindow("photo", cv::WINDOW_NORMAL);
     bool should_end = false;
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
-    for (int i = 0; i < 50; ++i){
-        std::string cam_label = std::to_string(i) + ".bmp";
+    for (int i = 4; i < 50; ++i){
+        std::string cam_label = std::to_string(i) + ".png";
         auto out = renderer.render(cam_label);
         cv::Mat view = out.view.get_cv_mat();
         cv::imshow("view", view);
         cv::imwrite("views/" + cam_label,view*255);
 
-        char k = cv::waitKey(10) & 0xFF;
+        char k = cv::waitKey(0) & 0xFF;
         switch (k) {
             case char(27):
                 should_end = true;

@@ -13,6 +13,11 @@ namespace chameleon
 
 
         CUDABarytexObservation get_cuda(const eigen_utils::Mat4<float>& obj_mat = eigen_utils::Mat4<float>::Identity()) const;
+        ~BarytexObservation(){
+            input_image.clear();
+        }
+        private:
+        mutable InputImageLayer<cv::Vec3b> input_image;
     };
 
 } // namespace chameleon

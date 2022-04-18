@@ -19,7 +19,6 @@ struct CUDALight
     float intensity;
     glm::vec3 color;
     CUDAArray<float> radial_attenuation;
-
 };
 
 struct CUDALightArray

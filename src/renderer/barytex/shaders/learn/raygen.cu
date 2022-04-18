@@ -66,10 +66,10 @@ inline __device__ CUDAArray<RadiationRayData> multisample_square(
 //------------------------------------------------------------------------------
 extern "C" __global__ void __raygen__renderFrame() {
     // compute a test pattern based on pixel ID
-
+    
     const int ix = optixGetLaunchIndex().x;
     const int iy = optixGetLaunchIndex().y;
-
+    
     const auto& camera = optixLaunchParams.camera;
     const uint32_t fbIndex = (ix + iy * camera.res.x);
 
@@ -81,11 +81,17 @@ extern "C" __global__ void __raygen__renderFrame() {
     //     rayDir *= -1.f;
     //     // printf("[%f, %f, %f ],\n", rayDir.x, rayDir.y, rayDir.z);
     // }
-
+    
     RadiationRayData rdb =
         cast_ray(glm::vec3(ix + .5f, iy + .5f, 1), camera,
                  photometry_renderer::ray_t::RADIANCE);
-
+    if(rdb.hit.is_valid){
+        if(fbIndex > (optixLaunchParams.observation.image.rows * optixLaunchParams.observation.image.cols)){
+            printf("%d, %d : %d, %d\n",ix,iy,optixLaunchParams.observation.image.cols, optixLaunchParams.observation.image.rows);
+        }else{
+            rdb.hit.value = optixLaunchParams.observation.image.data[fbIndex];
+        }
+    }
     optixLaunchParams.render_data
         .data[fbIndex * optixLaunchParams.sample_multiplier] = rdb.hit;
     // if (rdb.hit.is_valid) {

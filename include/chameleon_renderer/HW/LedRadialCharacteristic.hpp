@@ -14,6 +14,7 @@ namespace chameleon
          * 
          */
         LedRadialCharacteristic(const fs::path& ies_json_path);
+        LedRadialCharacteristic(const LedRadialCharacteristic& other):label(label),ies(ies){}
         LedRadialCharacteristic()=default;
 
     };

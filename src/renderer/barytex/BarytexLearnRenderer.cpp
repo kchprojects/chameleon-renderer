@@ -87,7 +87,9 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(const Baryt
             "input image not matching camera resolution");
     }
 
-    out_data.measurements.resize(cv::countNonZero(observation.image));
+    int cols =observation.image.cols;
+    int rows =observation.image.rows;
+    out_data.measurements.resize(cols*rows*launch_params.sample_multiplier);
     spdlog::info("Start render");
     TICK;
 
@@ -114,6 +116,8 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(const Baryt
     CUDA_SYNC_CHECK();
     TOCK;
     spdlog::info("Render done");
+
+    CUDA_CHECK(cudaFree(launch_params.observation.light.radial_attenuation.data));
     return out_data;
 }
 

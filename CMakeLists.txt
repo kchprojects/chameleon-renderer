@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.2)
 
-option(DEFAULT_COMPILER "Use gcc-8 g++-8" ON)
+option(DEFAULT_COMPILER "Use gcc-9 g++-9" ON)
 
 if(DEFAULT_COMPILER)
-  set(CMAKE_CXX_COMPILER /bin/g++-8)
-  set(CMAKE_C_COMPILER /bin/gcc-8)
+  set(CMAKE_CXX_COMPILER /bin/g++-9)
+  set(CMAKE_C_COMPILER /bin/gcc-9)
 endif(DEFAULT_COMPILER)
 
 project(OptixRender)
@@ -102,7 +102,8 @@ target_link_libraries(
          nlohmann_json::nlohmann_json
          ${OPENGL_gl_LIBRARY}
          glm::glm
-         spdlog::spdlog)
+         spdlog::spdlog
+         -lstdc++fs)
 
 target_compile_options(
   ${PROJECT_NAME}

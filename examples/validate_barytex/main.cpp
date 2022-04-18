@@ -1,7 +1,7 @@
 // #include <GL/gl.h>
 
-#include <chameleon_renderer/optix/OptixScene.hpp>
 #include <chameleon_renderer/HW/HWSetup.hpp>
+#include <chameleon_renderer/optix/OptixScene.hpp>
 #include <chameleon_renderer/renderer/barytex/BarytexLearnRenderer.hpp>
 #include <chrono>
 #include <fstream>
@@ -83,33 +83,31 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
 }
 
 struct Args {
-    fs::path obj_path =
-        "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/models/"
-        "pcb_new.obj";
-    fs::path views_path =
-        "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/"
-        "validate_barytex/cameras/cameras.json";
+    fs::path data_path = "/home/karelch/Diplomka/dataset_v1/fi_rock/";
     fs::path lights_path =
         "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
         "chameleon/lights.json";
-    fs::path data_path =
-        "/home/karelch/Diplomka/dataset_v1/fi_rock/";
     std::string extension = ".png";
+    fs::path obj_path =
+        "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
+    fs::path views_path =
+        "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
+
     Args() = default;
     Args(int argc, char** argv) {
         if (argc > 1) {
-            obj_path = argv[1];
+            data_path = argv[1];
+            obj_path = data_path / "reconstruction.obj";
+            views_path = data_path / "cameras.json";
         }
         if (argc > 2) {
-            views_path = argv[2];
-        }
-        if (argc > 3) {
-            lights_path = argv[3];
+            lights_path = argv[2];
         }
     }
 };
 
-void setup_views(BarytexLearnRenderer& renderer, const fs::path& view_json_path) {
+void setup_views(BarytexLearnRenderer& renderer,
+                 const fs::path& view_json_path) {
     std::ifstream ifs(view_json_path);
     Json j = Json::parse(ifs);
     for (const auto& [_, view_json] : j.items()) {
@@ -148,33 +146,47 @@ void setup_views(BarytexLearnRenderer& renderer, const fs::path& view_json_path)
         renderer.photometry_camera(cam_label).set_lights(lights);
     }
 }
-
+void write_pcd(std::string path, const std::vector<MeasurementHit>& hits) {
+    std::ofstream ofs(path);
+    for (const auto& hit : hits) {
+        if (hit.is_valid) {
+            ofs << hit.world_coordinates.x << " " << hit.world_coordinates.y
+                << " " << hit.world_coordinates.z 
+                << " " <<hit.value.x << " " << hit.value.y << " " << hit.value.z
+                << "\n";
+        }
+    }
+}
 extern "C" int main(int argc, char** argv) {
     Args args(argc, argv);
 
-
+    PING;
     OptixStaticScene scene;
+    PING;
     auto sm = SceneModel{args.obj_path};
+    PING;
     eigen_utils::Mat4<float> correction = eigen_utils::Mat4<float>::Identity();
     correction(0, 0) = -1;
     correction(1, 1) = 1;
     correction(2, 2) = 1;
-    sm.obj_mat = correction;
+    sm.obj_mat = correction * rotation(M_PI / 2, 0, 0);
     scene.add_model(sm);
-
+    PING;
     nlohmann::json setup_json;
     {
-        std::ifstream ifs;
+        std::ifstream ifs(args.lights_path);
         ifs >> setup_json;
     }
-
+    PING;
     HWSetup hw_setup = {setup_json};
+    PING;
 
     BarytexLearnRenderer renderer;
     renderer.setup();
     renderer.setup_scene(scene);
-
+    PING;
     setup_views(renderer, args.views_path);
+    PING;
 
     // // cv::Mat out;
     cv::namedWindow("view", cv::WINDOW_NORMAL);
@@ -184,15 +196,26 @@ extern "C" int main(int argc, char** argv) {
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
     for (int position = 0; position < 50; ++position) {
         std::string cam_label = std::to_string(position) + args.extension;
-        for(int light_id : light_ids){
+        // for(int light_id = 0; light_id < 127; ++light_id){
+        for (int light_id : light_ids) {
             BarytexObservation observation;
             observation.cam_label = cam_label;
-            auto img_path = args.data_path/("position_"+ std::to_string(position))/(std::to_string(light_id) + args.extension); 
-            observation.image = cv::imread(img_path.string() ,cv::IMREAD_COLOR);
+            auto img_path = args.data_path /
+                            ("position_" + std::to_string(position)) /
+                            (std::to_string(light_id) + args.extension);
+            observation.image = cv::imread(img_path.string(), cv::IMREAD_COLOR);
+            if(observation.image.empty()){
+                continue;
+            }
+            cv::cvtColor(observation.image,observation.image,cv::COLOR_BGR2RGB);
             observation.light = hw_setup.lights[light_id];
             auto out = renderer.render(observation);
-            std::cout<<out.measurements.download().size()<<std::endl;
+            auto mes = out.measurements.download();
+            std::cout << mes.size() << std::endl;
+            write_pcd("fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
+            // break;
         }
+        // break;
     }
     return 0;
 }  // namespace chameleon
