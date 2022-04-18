@@ -24,7 +24,7 @@ struct PhotometryCamera : public CalibratedCamera {
 
     PhotometryCamera(eigen_utils::Vec2<int> resolution, Json j);
 
-    CudaLightArray get_cuda_light_array();
+    CUDALightArray get_cuda_light_array();
 
     template <typename light_t>
     void add_light(light_t l) {

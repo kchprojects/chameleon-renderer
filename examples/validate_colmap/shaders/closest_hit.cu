@@ -1,5 +1,7 @@
 #include <chameleon_renderer/shader_utils/common.cuh>
 #include <chameleon_renderer/cuda/RayType.h>
+#include <chameleon_renderer/renderer/PhotometryLaunchParamProvider.cuh>
+
 namespace chameleon {
 extern "C" __global__ void __closesthit__shadow() {
 
@@ -74,6 +76,7 @@ extern "C" __global__ void __closesthit__shadow() {
 //         pixel_stack[i] = curr_byte;
 //     }
 // }
+
 
 inline __device__ glm::vec3 compute_bounce_dir(const SurfaceInfo& si, int light_id){
     if(light_id >= optixLaunchParams.light_data.count){

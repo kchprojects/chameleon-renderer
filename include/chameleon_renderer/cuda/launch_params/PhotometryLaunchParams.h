@@ -2,8 +2,8 @@
 
 #include <chameleon_renderer/utils/optix7.h>
 #include <chameleon_renderer/utils/math_utils.hpp>
-#include <chameleon_renderer/cuda/CudaCamera.h>
-#include <chameleon_renderer/cuda/CudaLight.h>
+#include <chameleon_renderer/cuda/CUDACamera.h>
+#include <chameleon_renderer/cuda/CUDALight.h>
 
 namespace chameleon {
 
@@ -20,9 +20,9 @@ struct LaunchParams
         vec2i size;
     };
     Layers layers;
-    CudaCamera camera;
+    CUDACamera camera;
     OptixTraversableHandle traversable;
-    CudaLightArray light_data;
+    CUDALightArray light_data;
 };
 } // namespace photometry_render
 } // namespace chameleon

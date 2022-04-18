@@ -1,5 +1,6 @@
 #include <chameleon_renderer/shader_utils/common.cuh>
 #include <chameleon_renderer/cuda/RayType.h>
+#include <chameleon_renderer/renderer/PhotometryLaunchParamProvider.cuh>
 namespace chameleon {
 extern "C" __global__ void __closesthit__shadow() {
 

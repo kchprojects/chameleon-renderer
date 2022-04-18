@@ -14,9 +14,9 @@ PhotometryCamera::PhotometryCamera(eigen_utils::Vec2<int> resolution,
 PhotometryCamera::PhotometryCamera(eigen_utils::Vec2<int> resolution, Json j)
     : CalibratedCamera(resolution, j) {}
 
-CudaLightArray PhotometryCamera::get_cuda_light_array() {
+CUDALightArray PhotometryCamera::get_cuda_light_array() {
     using namespace eigen_utils;
-    std::vector<CudaLight> cuda_lights;
+    std::vector<CUDALight> cuda_lights;
 
     cuda_lights.resize(lights.size());
     for (auto i = 0u; i < lights.size(); ++i) {
@@ -37,7 +37,7 @@ CudaLightArray PhotometryCamera::get_cuda_light_array() {
         light_buff.free();
     }
     light_buff.alloc_and_upload(cuda_lights);
-    return {(CudaLight*)light_buff.d_ptr, cuda_lights.size()};
+    return {(CUDALight*)light_buff.d_ptr, cuda_lights.size()};
 }
 
 }  // namespace chameleon

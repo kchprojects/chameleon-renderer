@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <array>
 #include <chameleon_renderer/utils/optix7.h>
 #include <assert.h>
 
@@ -23,6 +24,12 @@ struct CUDABuffer {
 
     template <typename T>
     void alloc_and_upload(const std::vector<T>& vt) {
+        alloc(vt.size() * sizeof(T));
+        upload((const T*)vt.data(), vt.size());
+    }
+
+    template <typename T,size_t S>
+    void alloc_and_upload(const std::array<T,S>& vt) {
         alloc(vt.size() * sizeof(T));
         upload((const T*)vt.data(), vt.size());
     }

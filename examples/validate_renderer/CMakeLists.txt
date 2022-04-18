@@ -37,6 +37,7 @@ nvcuda_compile_ptx(
   "-I${glm_dir}"
 )
 
+message("ptx: ${PTX_SOURCES}")
 message("{CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
                                ${PTX_SOURCES})

@@ -1,5 +1,5 @@
 #pragma once
-
+#include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
 namespace chameleon {
 
 namespace photometry_render {
@@ -16,7 +16,13 @@ struct RadiationRayData {
     glm::vec3* view;
     uint8_t* mask;
 };
-
 }  // namespace photometry_render
+
+namespace barytex_learn_render {
+struct RadiationRayData {
+    MeasurementHit hit;
+};
+
+}  // namespace barytex_learn_render
 
 }  // namespace chameleon

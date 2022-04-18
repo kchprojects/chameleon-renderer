@@ -44,6 +44,12 @@ struct InputImageLayer
     size_t res_y = 0;
     CUDABuffer cuda_buffer;
 
+
+    InputImageLayer()=default;
+    InputImageLayer(const cv::Mat& img){
+        upload_cv_mat(img);
+    }
+
     void resize(size_t x, size_t y)
     {
         if (res_x == x and res_y == y)

@@ -5,7 +5,7 @@ namespace chameleon {
 
 inline __device__ photometry_render::RadiationRayDataBase cast_ray(
     glm::vec3 ray_base,
-    const chameleon::CudaCamera& camera,
+    const chameleon::CUDACamera& camera,
     photometry_renderer::ray_t ray_type) {
     // generate ray direction
     glm::vec3 rayDir = normalize(transform(camera.camera_mat_inverse, ray_base));

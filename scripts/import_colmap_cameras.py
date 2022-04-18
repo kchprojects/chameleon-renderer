@@ -85,8 +85,8 @@ def read_positions(filename):
 fig = plt.figure(figsize=(15,15))
 ax = fig.add_subplot(111, projection='3d')
 
-positions = read_positions("test_data/images.txt")
-cameras = read_cameras("test_data/cameras.txt")
+positions = read_positions("test_data/coin_rgb/images.txt")
+cameras = read_cameras("test_data/coin_rgb/cameras.txt")
 
 ax.set_xlim([-5,5])
 ax.set_ylim([-5,5])
@@ -108,5 +108,5 @@ for cam_key in positions:
     
 
 
-with open("cameras.json","w") as file:
+with open("test_data/coin_rgb/cameras.json","w") as file:
     json.dump(out_cameras,file,indent=4)

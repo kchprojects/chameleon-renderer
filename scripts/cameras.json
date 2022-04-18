@@ -48,6 +48,10 @@
                 1.0
             ]
         ],
+        "light":{
+            "setup_id":0,
+            "led_id":0
+        },  
         "img_name": "1.bmp"
     },
     "13.bmp": {

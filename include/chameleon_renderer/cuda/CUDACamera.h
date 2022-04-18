@@ -1,7 +1,7 @@
 #pragma once
 #include <chameleon_renderer/utils/math_utils.hpp>
 namespace chameleon {
-struct CudaCamera {
+struct CUDACamera {
     glm::mat4 obj_mat;
     glm::mat4 obj_mat_inverse;
     glm::mat3 camera_mat;

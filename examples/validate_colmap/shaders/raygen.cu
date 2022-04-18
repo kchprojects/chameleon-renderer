@@ -1,11 +1,11 @@
 #include <chameleon_renderer/cuda/RayType.h>
-
+#include <chameleon_renderer/renderer/PhotometryLaunchParamProvider.cuh>
 #include <chameleon_renderer/shader_utils/common.cuh>
 
 namespace chameleon {
 
 inline __device__ photometry_render::RadiationRayDataBase cast_ray(
-    glm::vec3 ray_base, const chameleon::CudaCamera& camera,
+    glm::vec3 ray_base, const CUDACamera& camera,
     photometry_renderer::ray_t ray_type) {
     // generate ray direction
     ray_base.z = 1; 
@@ -41,7 +41,7 @@ inline __device__ photometry_render::RadiationRayDataBase cast_ray(
 // ray gen program - the actual rendering happens in here
 //------------------------------------------------------------------------------
 extern "C" __global__ void __raygen__renderFrame() {
-    // compute a test pattern based on pixel ID
+    // compute a test pattern based on pixel ID 
     const int ix = optixGetLaunchIndex().x;
     const int iy = optixGetLaunchIndex().y;
 

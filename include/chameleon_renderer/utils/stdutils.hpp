@@ -1,7 +1,7 @@
 #pragma once
 
 #include <filesystem>
-namespace chameleon_renderer {
+namespace chameleon {
 namespace fs = std::filesystem;
 
 }

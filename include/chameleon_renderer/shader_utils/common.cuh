@@ -1,18 +1,12 @@
 #pragma once
-#include <chameleon_renderer/cuda/LaunchParams.h>
 #include <chameleon_renderer/cuda/TriangleMeshSBTData.h>
 #include <cuda_runtime.h>
 #include <optix_device.h>
-
 #include <chameleon_renderer/utils/math_utils.hpp>
 
-#include "PerRayData.cuh"
+#include <chameleon_renderer/shader_utils/PerRayData.cuh>
 
 namespace chameleon {
-/*! launch parameters in constant memory, filled in by optix upon
-    optixLaunch (this gets filled in from the buffer we pass to
-    optixLaunch) */
-extern "C" __constant__ photometry_render::LaunchParams optixLaunchParams;
 
 static __forceinline__ __device__ void* unpackPointer(uint32_t i0,
                                                       uint32_t i1) {
@@ -42,6 +36,11 @@ inline __device__ glm::vec3 transform(const glm::mat3& mat,
 inline __device__ float dot(const glm::vec4& a, const glm::vec4& b) {
     return glm::dot(a, b);
 }
+
+inline __device__ float distance(const glm::vec3& a, const glm::vec3& b) {
+    return sqrt(dot(a-b,a-b));
+}
+
 inline __device__ glm::vec4 transform(const glm::mat4& mat,
                                       const glm::vec4& vec) {
     return mat * vec;
@@ -78,6 +77,8 @@ struct SurfaceInfo {
     glm::vec3 surfPos;
     glm::vec3 uv;
     glm::vec3 diffuseColor;
+    glm::vec3 bary_coords;
+    int primID;
 };
 
 inline __device__ SurfaceInfo get_surface_info() {
@@ -125,6 +126,8 @@ inline __device__ SurfaceInfo get_surface_info() {
     // ------------------------------------------------------------------
     // compute shadow
     // ------------------------------------------------------------------
+    const glm::vec3 bary_coords = {(1.f - u - v),u,v};
+
     const glm::vec3 surfPos = (1.f - u - v) * sbtData.vertex[index.x] +
                               u * sbtData.vertex[index.y] +
                               v * sbtData.vertex[index.z];
@@ -147,7 +150,7 @@ inline __device__ SurfaceInfo get_surface_info() {
         diffuseColor *= glm::vec3(fromTexture.x, fromTexture.y, fromTexture.z);
     }
     // TODO::differentiate meshes
-    return {Ns, Ng, surfPos, {tc.x, tc.y, 0}, diffuseColor};
+    return {Ns, Ng, surfPos, {tc.x, tc.y, 0}, diffuseColor,bary_coords,primID};
 }
 
 }  // namespace chameleon

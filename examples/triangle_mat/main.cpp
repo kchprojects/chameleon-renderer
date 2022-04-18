@@ -10,11 +10,11 @@
 namespace chameleon {
 
 extern "C" int main(int argc, char** argv) {
-    std::vector<MeasurementHit> hits = {
-        {0, {0.7, 0.2, 0.1}, {1, 0, 0}, {1, 0, 0}, {1, 1, 1}, true},
-        {0, {0.2, 0.7, 0.1}, {1, 0, 0}, {1, 0, 0}, {1, 1, 1}, true}};
+    // std::vector<MeasurementHit> hits = {
+    //     {0, {0.7, 0.2, 0.1}, {1, 0, 0}, {1, 0, 0}, {1, 1, 1}, true},
+    //     {0, {0.2, 0.7, 0.1}, {1, 0, 0}, {1, 0, 0}, {1, 1, 1}, true}};
 
-    MeasurementTree mt(hits,4);
+    // MeasurementTree mt(hits,4);
     
 
     return 0;

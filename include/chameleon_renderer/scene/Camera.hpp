@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chameleon_renderer/cuda/CudaCamera.h>
+#include <chameleon_renderer/cuda/CUDACamera.h>
 
 #include <chameleon_renderer/utils/eigen_utils.hpp>
 #include <chameleon_renderer/utils/json.hpp>
@@ -44,6 +44,6 @@ public:
     eigen_utils::Vec3<float> position() const;
     eigen_utils::Mat4<float> object_matrix() const;
 
-    CudaCamera get_cuda() const;
+    CUDACamera get_cuda() const;
 };
 } // namespace chameleon

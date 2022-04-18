@@ -1,27 +1,30 @@
 #include <chameleon_renderer/cuda/RayType.h>
+
+#include <chameleon_renderer/renderer/PhotometryLaunchParamProvider.cuh>
+#include <chameleon_renderer/shader_utils/PerRayData.cuh>
 #include <chameleon_renderer/shader_utils/common.cuh>
 
 namespace chameleon {
-
 inline __device__ photometry_render::RadiationRayDataBase cast_ray(
-    glm::vec3 ray_base,
-    const chameleon::CudaCamera& camera,
+    glm::vec3 ray_base, const CUDACamera& camera,
     photometry_renderer::ray_t ray_type) {
     // generate ray direction
     glm::vec3 rayDir = camera.camera_mat_inverse * ray_base;
-    
+
     rayDir = glm::normalize(transform_vec(camera.obj_mat, rayDir));
     rayDir.y *= -1;
     // printf("%f %f %f \n",rayDir.x,rayDir.y,rayDir.z);
-    
+
     photometry_render::RadiationRayDataBase rdb;
     photometry_render::RadiationRayData prd = {&rdb.normal, &rdb.uv, &rdb.view,
                                                &rdb.mask};
-    
-                                               uint32_t u0, u1;
-                                               packPointer(&prd, u0, u1);
-                                               optixTrace(
-        optixLaunchParams.traversable, {camera.pos.x,camera.pos.y,camera.pos.z}, {rayDir.x,rayDir.y,rayDir.z},
+
+    uint32_t u0, u1;
+    packPointer(&prd, u0, u1);
+    optixTrace(
+        optixLaunchParams.traversable,
+        {camera.pos.x, camera.pos.y, camera.pos.z},
+        {rayDir.x, rayDir.y, rayDir.z},
         0.f,    // tmin
         1e20f,  // tmax
         0.0f,   // rayTime
@@ -86,7 +89,8 @@ extern "C" __global__ void __raygen__renderFrame() {
     // rdb.view.y = (rdb.view.y + 1.f)/2.f;
     // rdb.view.x = (rdb.view.x + 1.f)/2.f;
     // optixLaunchParams.layers.view[fbIndex] = rdb.view;
-    // optixLaunchParams.layers.view[fbIndex] = {ix/float(camera.res.x),iy/float(camera.res.y),0};
+    // optixLaunchParams.layers.view[fbIndex] =
+    // {ix/float(camera.res.x),iy/float(camera.res.y),0};
 }
 
 }  // namespace chameleon

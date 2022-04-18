@@ -98,10 +98,10 @@ namespace chameleon {
     }
 
 
-    CudaCamera CalibratedCamera::get_cuda() const
+    CUDACamera CalibratedCamera::get_cuda() const
     {
         //TODO::hide printing
-        CudaCamera out;
+        CUDACamera out;
         out.camera_mat_inverse =
             eigen_utils::from_eigen_m3(_camera_matrix_inverse);
         out.camera_mat = eigen_utils::from_eigen_m3(_camera_matrix);
