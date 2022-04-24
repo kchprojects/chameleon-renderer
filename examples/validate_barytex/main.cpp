@@ -9,6 +9,7 @@
 #include <memory>
 #include <opencv2/opencv.hpp>
 
+
 // #define SHOW_SHADOWS
 namespace chameleon {
 using namespace eigen_utils;
@@ -171,6 +172,8 @@ extern "C" int main(int argc, char** argv) {
     correction(2, 2) = 1;
     sm.obj_mat = correction * rotation(M_PI / 2, 0, 0);
     scene.add_model(sm);
+    
+    return 0;
     PING;
     nlohmann::json setup_json;
     {
@@ -214,7 +217,7 @@ extern "C" int main(int argc, char** argv) {
             auto mes = out.measurements.download();
             export_measurement(mes, "mes.json",true);
             mes = import_measurement("mes.json");
-            
+
             export_measurement_pcd(
                 "fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
             // break;
