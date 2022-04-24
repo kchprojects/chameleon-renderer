@@ -1,6 +1,7 @@
 // #include <GL/gl.h>
 
 #include <chameleon_renderer/HW/HWSetup.hpp>
+#include <chameleon_renderer/materials/barytex/io.hpp>
 #include <chameleon_renderer/optix/OptixScene.hpp>
 #include <chameleon_renderer/renderer/barytex/BarytexLearnRenderer.hpp>
 #include <chrono>
@@ -151,9 +152,8 @@ void write_pcd(std::string path, const std::vector<MeasurementHit>& hits) {
     for (const auto& hit : hits) {
         if (hit.is_valid) {
             ofs << hit.world_coordinates.x << " " << hit.world_coordinates.y
-                << " " << hit.world_coordinates.z 
-                << " " <<hit.value.x << " " << hit.value.y << " " << hit.value.z
-                << "\n";
+                << " " << hit.world_coordinates.z << " " << hit.value.x << " "
+                << hit.value.y << " " << hit.value.z << "\n";
         }
     }
 }
@@ -204,15 +204,19 @@ extern "C" int main(int argc, char** argv) {
                             ("position_" + std::to_string(position)) /
                             (std::to_string(light_id) + args.extension);
             observation.image = cv::imread(img_path.string(), cv::IMREAD_COLOR);
-            if(observation.image.empty()){
+            if (observation.image.empty()) {
                 continue;
             }
-            cv::cvtColor(observation.image,observation.image,cv::COLOR_BGR2RGB);
+            cv::cvtColor(observation.image, observation.image,
+                         cv::COLOR_BGR2RGB);
             observation.light = hw_setup.lights[light_id];
             auto out = renderer.render(observation);
             auto mes = out.measurements.download();
-            std::cout << mes.size() << std::endl;
-            write_pcd("fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
+            export_measurement(mes, "mes.json",true);
+            mes = import_measurement("mes.json");
+            
+            export_measurement_pcd(
+                "fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
             // break;
         }
         // break;

@@ -14,7 +14,7 @@ struct MeasurementHit {
     glm::vec3 eye;    // vector to camera sized by distance
     glm::vec3 light;  // vector to light sized by distance
     glm::vec3 mesh_normal;
-
+    
     glm::vec3 value;  // value of observed pixel
 
     bool is_valid = false;  // hit is not corrupted by shadow

@@ -11,24 +11,17 @@
 namespace std {
 
 inline bool operator<(const tinyobj::index_t& a, const tinyobj::index_t& b) {
+    if (a.vertex_index < b.vertex_index) return true;
 
-    if (a.vertex_index < b.vertex_index)
-        return true;
+    if (a.vertex_index > b.vertex_index) return false;
 
-    if (a.vertex_index > b.vertex_index)
-        return false;
+    if (a.normal_index < b.normal_index) return true;
 
-    if (a.normal_index < b.normal_index)
-        return true;
+    if (a.normal_index > b.normal_index) return false;
 
-    if (a.normal_index > b.normal_index)
-        return false;
+    if (a.texcoord_index < b.texcoord_index) return true;
 
-    if (a.texcoord_index < b.texcoord_index)
-        return true;
-
-    if (a.texcoord_index > b.texcoord_index)
-        return false;
+    if (a.texcoord_index > b.texcoord_index) return false;
 
     return false;
 }
@@ -37,19 +30,41 @@ inline bool operator<(const tinyobj::index_t& a, const tinyobj::index_t& b) {
 
 namespace chameleon {
 
+TriangleMesh::TraversableTriangleMesh::TraversableTriangleMesh(
+    const TriangleMesh& base_mesh)
+    : base_mesh(base_mesh) {
+    vertices.resize(base_mesh.vertex.size());
+    faces.resize(base_mesh.index.size());
+    int curr_face= 0;
+    for (const auto& curr_vert_indices : base_mesh.index) {
+        for(int i = 0; i < 3; ++i){
+            faces[curr_face].vert_indices[i] = curr_vert_indices[i];
+            vertices[curr_vert_indices[i]].face_indices.push_back(curr_face);
+            auto edge_pair = std::make_pair(curr_vert_indices[i],curr_vert_indices[(i+1)%3]);
+            if(edges.count(edge_pair)){
+                edges.at(edge_pair).face_indices[1] = curr_face; 
+            }else{
+                edges[edge_pair].face_indices[0] = curr_face;
+            }
+        }
+
+        ++curr_face;
+    }
+}
 /*! find vertex with given position, normal, texcoord, and return
     its vertex ID, or, if it doesn't exit, add it to the mesh, and
     its just-created index */
-static int addVertex(TriangleMesh& mesh,
-                     tinyobj::attrib_t& attributes,
+static int addVertex(TriangleMesh& mesh, tinyobj::attrib_t& attributes,
                      const tinyobj::index_t& idx,
                      std::map<tinyobj::index_t, int>& knownVertices) {
     if (knownVertices.find(idx) != knownVertices.end())
         return knownVertices[idx];
 
-    const glm::vec3* vertex_array = (const glm::vec3*)attributes.vertices.data();
+    const glm::vec3* vertex_array =
+        (const glm::vec3*)attributes.vertices.data();
     const glm::vec3* normal_array = (const glm::vec3*)attributes.normals.data();
-    const glm::vec2* texcoord_array = (const glm::vec2*)attributes.texcoords.data();
+    const glm::vec2* texcoord_array =
+        (const glm::vec2*)attributes.texcoords.data();
 
     int newID = (int)mesh.vertex.size();
     knownVertices[idx] = newID;
@@ -65,11 +80,9 @@ static int addVertex(TriangleMesh& mesh,
     }
 
     // just for sanity's sake:
-    if (mesh.texcoord.size() > 0)
-        mesh.texcoord.resize(mesh.vertex.size());
+    if (mesh.texcoord.size() > 0) mesh.texcoord.resize(mesh.vertex.size());
     // just for sanity's sake:
-    if (mesh.normal.size() > 0)
-        mesh.normal.resize(mesh.vertex.size());
+    if (mesh.normal.size() > 0) mesh.normal.resize(mesh.vertex.size());
 
     return newID;
 }
@@ -128,12 +141,9 @@ static int addVertex(TriangleMesh& mesh,
 //     return textureID;
 // }
 
-int loadTexture(Model& model,
-                std::map<std::string, int>& knownTextures,
-                const std::string& inFileName,
-                const std::string& modelPath) {
-    if (inFileName == "")
-        return -1;
+int loadTexture(Model& model, std::map<std::string, int>& knownTextures,
+                const std::string& inFileName, const std::string& modelPath) {
+    if (inFileName == "") return -1;
 
     if (knownTextures.find(inFileName) != knownTextures.end())
         return knownTextures[inFileName];
@@ -141,8 +151,7 @@ int loadTexture(Model& model,
     std::string fileName = inFileName;
     // first, fix backspaces:
     for (auto& c : fileName)
-        if (c == '\\')
-            c = '/';
+        if (c == '\\') c = '/';
     if (fileName[0] != '/') {
         fileName = modelPath + "/" + fileName;
     }
@@ -166,13 +175,12 @@ int loadTexture(Model& model,
 
         model.textures.push_back(std::move(texture));
     } else {
-        spdlog::error("Could not load texture from {} !",fileName);
+        spdlog::error("Could not load texture from {} !", fileName);
     }
 
     knownTextures[inFileName] = textureID;
     return textureID;
 }
-
 
 Model loadOBJ(const std::string& objFile) {
     Model model;
@@ -213,8 +221,7 @@ Model loadOBJ(const std::string& objFile) {
 
             for (auto faceID = 0u; faceID < shape.mesh.material_ids.size();
                  faceID++) {
-                if (shape.mesh.material_ids[faceID] != materialID)
-                    continue;
+                if (shape.mesh.material_ids[faceID] != materialID) continue;
                 tinyobj::index_t idx0 = shape.mesh.indices[3 * faceID + 0];
                 tinyobj::index_t idx1 = shape.mesh.indices[3 * faceID + 1];
                 tinyobj::index_t idx2 = shape.mesh.indices[3 * faceID + 2];
@@ -223,22 +230,20 @@ Model loadOBJ(const std::string& objFile) {
                           addVertex(mesh, attributes, idx1, knownVertices),
                           addVertex(mesh, attributes, idx2, knownVertices));
                 mesh.index.push_back(idx);
-                //TOOD: ?????
-                mesh.diffuse = (const glm::vec3&) materials[materialID].diffuse;
+                // TOOD: ?????
+                mesh.diffuse = (const glm::vec3&)materials[materialID].diffuse;
                 // TODO:Textures
                 mesh.diffuseTextureID = loadTexture(
                     model, knownTextures, materials[materialID].diffuse_texname,
                     modelDir);
             }
 
-            if (!mesh.vertex.empty())
-                model.meshes.push_back(std::move(mesh));
+            if (!mesh.vertex.empty()) model.meshes.push_back(std::move(mesh));
         }
     }
 
     for (const auto& mesh : model.meshes)
-        for (const auto& vtx : mesh.vertex)
-            model.bounds.extend(vtx);
+        for (const auto& vtx : mesh.vertex) model.bounds.extend(vtx);
 
     std::cout << "created a total of " << model.meshes.size() << " meshes"
               << std::endl;

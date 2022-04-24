@@ -111,3 +111,4 @@ target_compile_options(
   INTERFACE -Wno-missing-field-initializers)
 
 add_subdirectory(examples)
+add_subdirectory(tests)
