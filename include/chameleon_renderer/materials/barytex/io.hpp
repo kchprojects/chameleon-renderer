@@ -1,5 +1,6 @@
 #pragma once
 #include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
+#include <chameleon_renderer/materials/barytex/BRDFMeasurement.hpp>
 #include <chameleon_renderer/utils/file_utils.hpp>
 #include <chameleon_renderer/utils/math_io.hpp>
 #include <fstream>
@@ -42,29 +43,63 @@ void export_measurement_pcd(const fs::path& path,
     }
 }
 
-void export_measurement(const std::vector<MeasurementHit>& data,
-                        const fs::path& path,bool compress = false) {
+void export_measurement_json(const std::vector<MeasurementHit>& data,
+                             const fs::path& path, bool compress = false) {
     nlohmann::json j = nlohmann::json::array();
+    std::cout << "exporting measurements to: " << path << std::endl;
+    int count = 0;
     for (const auto& mes : data) {
-        if(!compress || mes.is_valid){
+        std::cout << (count++) * 100.0 / data.size() << "%              \r"
+                  << std::flush;
+        if (!compress || mes.is_valid) {
             j.emplace_back(mes);
         }
     }
+    std::cout << std::endl;
     std::ofstream ofs(path);
     ofs << j;
 }
-std::vector<MeasurementHit> import_measurement(const fs::path& path, bool only_valid=false) {
-    nlohmann::json j;
-    std::vector<MeasurementHit> data;
-    {
-        std::ifstream ifs(path);
-        ifs >> j;
-    }
-    for (const auto& mes_j : j) {
-        if( !only_valid || mes_j.at("is_valid").get<bool>()){
-            data.emplace_back(mes_j);
-        }
-    }
+
+template<typename T>
+void write_vector_bin(std::ofstream& ofs, const std::vector<T>& vec){
+    size_t count = vec.size();
+    ofs.write(reinterpret_cast<const char*>(&count),sizeof(count));
+    ofs.write(reinterpret_cast<const char*>(vec.data()),
+              sizeof(T) * count);
+}
+
+template<typename T>
+std::vector<T> read_vector_bin(std::ifstream& ifs){
+    size_t num_elements = 0;
+    ifs.read(reinterpret_cast<char*>(&num_elements), sizeof(num_elements));
+    std::vector<T> data(num_elements);
+    ifs.read(reinterpret_cast<char*>(data.data()),
+             sizeof(T) * num_elements);
     return data;
 }
+
+void export_measurement_bin(const std::vector<MeasurementHit>& data,
+                            const fs::path& path) {
+    std::ofstream ofs(path, std::ios::binary);
+    std::cout << "exporting measurements to: " << path << std::endl;
+    write_vector_bin(ofs,data);    
+}
+
+void export_isotropic_bin(const std::vector<IsotropicBRDFMeasurement>& data,
+                            const fs::path& path) {
+    std::ofstream ofs(path, std::ios::binary);
+    std::cout << "exporting isotropic to: " << path << std::endl;
+    write_vector_bin(ofs,data);    
+}
+
+std::vector<IsotropicBRDFMeasurement> import_isotropic_bin(const fs::path& path) {
+    std::ifstream ifs(path, std::ios::binary);
+    return read_vector_bin<IsotropicBRDFMeasurement>(ifs);    
+}
+
+std::vector<MeasurementHit> import_measurement_bin(const fs::path& path) {
+    std::ifstream ifs(path, std::ios::binary);
+    return read_vector_bin<MeasurementHit>(ifs);
+}
+
 }  // namespace chameleon

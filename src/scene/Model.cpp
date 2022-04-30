@@ -36,7 +36,9 @@ TriangleMesh::TraversableTriangleMesh::TraversableTriangleMesh(
     vertices.resize(base_mesh.vertex.size());
     faces.resize(base_mesh.index.size());
     int curr_face= 0;
+    std::cout<<"TMesh"<<std::endl;
     for (const auto& curr_vert_indices : base_mesh.index) {
+        std::cout<< curr_face*100.0/base_mesh.index.size()<<"%               \r" << std::flush;
         for(int i = 0; i < 3; ++i){
             faces[curr_face].vert_indices[i] = curr_vert_indices[i];
             vertices[curr_vert_indices[i]].face_indices.push_back(curr_face);

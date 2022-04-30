@@ -89,7 +89,7 @@ extern "C" __global__ void __raygen__renderFrame() {
         if(fbIndex > (optixLaunchParams.observation.image.rows * optixLaunchParams.observation.image.cols)){
             printf("%d, %d : %d, %d\n",ix,iy,optixLaunchParams.observation.image.cols, optixLaunchParams.observation.image.rows);
         }else{
-            rdb.hit.value = optixLaunchParams.observation.image.data[fbIndex];
+            rdb.hit.value = optixLaunchParams.observation.image.data[fbIndex]/255.0f;
         }
     }
     optixLaunchParams.render_data

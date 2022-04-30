@@ -1,16 +1,12 @@
 cmake_minimum_required(VERSION 3.2)
 
-option(DEFAULT_COMPILER "Use gcc-9 g++-9" ON)
-
-if(DEFAULT_COMPILER)
-  set(CMAKE_CXX_COMPILER /bin/g++-9)
-  set(CMAKE_C_COMPILER /bin/gcc-9)
-endif(DEFAULT_COMPILER)
-
+# set(CMAKE_CXX_COMPILER /usr/bin/cc)
+# set(CMAKE_C_COMPILER /usr/bin/c)
+set(CMAKE_CXX_STANDARD 17)
 project(OptixRender)
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}
-                    "-Wextra -Wno-missing-field-initializers")
+                    "-Wextra -Wno-missing-field-initializers -Wno-deprecated-declarations")
 set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -50,6 +46,8 @@ file(GLOB SHADERS_DEPENDENCY_HEADERS
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(nlohmann_json REQUIRED)
+add_subdirectory(thirdparty/ceres-solver)
+
 add_subdirectory(thirdparty/glm)
 add_subdirectory(thirdparty/spdlog)
 
@@ -103,6 +101,7 @@ target_link_libraries(
          ${OPENGL_gl_LIBRARY}
          glm::glm
          spdlog::spdlog
+         Ceres::ceres
          -lstdc++fs)
 
 target_compile_options(

@@ -4,6 +4,7 @@
 #include <chameleon_renderer/materials/barytex/io.hpp>
 #include <chameleon_renderer/optix/OptixScene.hpp>
 #include <chameleon_renderer/renderer/barytex/BarytexLearnRenderer.hpp>
+#include <chameleon_renderer/materials/barytex/GeneralMeasurement.hpp>
 #include <chrono>
 #include <fstream>
 #include <memory>
@@ -91,7 +92,8 @@ struct Args {
         "chameleon/lights.json";
     std::string extension = ".png";
     fs::path obj_path =
-        "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
+        "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction_dummy.obj";
+
     fs::path views_path =
         "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
 
@@ -161,35 +163,35 @@ void write_pcd(std::string path, const std::vector<MeasurementHit>& hits) {
 extern "C" int main(int argc, char** argv) {
     Args args(argc, argv);
 
-    PING;
+     
     OptixStaticScene scene;
-    PING;
+     
     auto sm = SceneModel{args.obj_path};
-    PING;
+
     eigen_utils::Mat4<float> correction = eigen_utils::Mat4<float>::Identity();
     correction(0, 0) = -1;
     correction(1, 1) = 1;
     correction(2, 2) = 1;
     sm.obj_mat = correction * rotation(M_PI / 2, 0, 0);
+    sm.update();
     scene.add_model(sm);
     
-    return 0;
-    PING;
+
     nlohmann::json setup_json;
     {
         std::ifstream ifs(args.lights_path);
         ifs >> setup_json;
     }
-    PING;
+     
     HWSetup hw_setup = {setup_json};
-    PING;
+     
 
     BarytexLearnRenderer renderer;
     renderer.setup();
     renderer.setup_scene(scene);
-    PING;
+     
     setup_views(renderer, args.views_path);
-    PING;
+     
 
     // // cv::Mat out;
     cv::namedWindow("view", cv::WINDOW_NORMAL);
@@ -197,10 +199,13 @@ extern "C" int main(int argc, char** argv) {
     bool should_end = false;
     std::vector<int> light_ids = {4};
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
+    std::vector<IsotropicBRDFMeasurement> all_mes;
     for (int position = 0; position < 50; ++position) {
         std::string cam_label = std::to_string(position) + args.extension;
-        // for(int light_id = 0; light_id < 127; ++light_id){
-        for (int light_id : light_ids) {
+        
+        // should be to 127
+        for(int light_id = 0; light_id < 20; ++light_id){
+        // for (int light_id : light_ids) {
             BarytexObservation observation;
             observation.cam_label = cam_label;
             auto img_path = args.data_path /
@@ -215,14 +220,33 @@ extern "C" int main(int argc, char** argv) {
             observation.light = hw_setup.lights[light_id];
             auto out = renderer.render(observation);
             auto mes = out.measurements.download();
-            export_measurement(mes, "mes.json",true);
-            mes = import_measurement("mes.json");
+            int counter = 0;
+            for(const auto& m : mes){
+                if(m.is_valid){
+                    all_mes.emplace_back(m);
+                }
 
-            export_measurement_pcd(
-                "fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
+            }
+            // export_measurement(mes, "mes.json",true);
+            // mes = import_measurement("mes.json");
+
+            // export_measurement_pcd(
+            //     "fi_rock/pcd/" + std::to_string(position) + ".txt", mes);
             // break;
         }
-        // break;
+
+
+        export_isotropic_bin(all_mes, "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/validate_solver/mesurements/fi_roc_mes.isobrdf");
+        // export_measurement_pcd(
+        //     "on_cube" + std::to_string(position) + ".txt", all_mes);
+        // GeneralMeasurement gm(sm.mesh(0),all_mes,0.02,1);
+        // auto lambert_forest = compute_model<MaterialModel::Lambert>(gm,10);
+        // auto lf_json = lambert_forest.serialize();
+        // {
+        //     std::ofstream ofs("fi_rock_lambert.json");
+        //     ofs << lf_json<<std::endl;
+        // }
+        break;
     }
     return 0;
 }  // namespace chameleon

@@ -1,3 +1,5 @@
+*.isobrdf
+*.mes_hits
 # Prerequisites
 *.d
 *.pyc 

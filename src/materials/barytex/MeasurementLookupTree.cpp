@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chameleon_renderer/cuda/CUDABuffer.hpp>
 #include <chameleon_renderer/materials/barytex/MeasurementLookupTree.hpp>
 #include <chameleon_renderer/utils/math_io.hpp>
 
@@ -12,11 +13,12 @@ MeasurementLookupTree::MeasurementLookupTree(const glm::vec3& A,
                               std::max(glm::length(B - C), glm::length(A - C)));
     int new_max_depth = 0;
     float distance_factor = max_dist;
-    while (distance_factor >= min_distance && (max_depth == -1 || new_max_depth < max_depth)) {
+    while (distance_factor >= min_distance &&
+           (max_depth == -1 || new_max_depth < max_depth)) {
         distance_factor /= 2;
         ++new_max_depth;
     }
-    tree_depth = std::max(std::max(new_max_depth, max_depth),1);
+    tree_depth = std::max(std::max(new_max_depth, max_depth), 1);
 
     int sub_division_count = std::pow(2, tree_depth - 1);
     int layer_count = sub_division_count + 1;
@@ -59,7 +61,7 @@ MeasurementLookupTree::MeasurementLookupTree(const glm::vec3& A,
                 curr_divisor.A = move_line.A_id;
                 curr_divisor.B = move_line.B_id;
                 curr_divisor.C = move_line.C_id;
-                move_line.child_id = divisors.size()-1;
+                move_line.child_id = divisors.size() - 1;
             } else {
                 curr_divisor.C = 0;
                 curr_divisor.A = measurement_points.size() - layer_count;
@@ -120,7 +122,8 @@ MeasurementLookupTree::MeasurementLookupTree(const nlohmann::json& j) {
         if (point_j.at("material") != nullptr) {
             // TODO:
         }
-        measurement_points.back().position = vec_from_json(point_j.at("position"));
+        measurement_points.back().position =
+            vec_from_json(point_j.at("position"));
     }
     for (const auto& div_j : j.at("divisor_nodes")) {
         divisors.emplace_back();
@@ -130,10 +133,14 @@ MeasurementLookupTree::MeasurementLookupTree(const nlohmann::json& j) {
         divisors.back().C = div_j.at("C");
 
         for (int i = 0; i < 4; ++i) {
-            divisors.back().divisors[i].A_id = div_j.at("divisors")[i].at("A_id");
-            divisors.back().divisors[i].B_id = div_j.at("divisors")[i].at("B_id");
-            divisors.back().divisors[i].C_id = div_j.at("divisors")[i].at("C_id");
-            divisors.back().divisors[i].child_id = div_j.at("divisors")[i].at("child_id");
+            divisors.back().divisors[i].A_id =
+                div_j.at("divisors")[i].at("A_id");
+            divisors.back().divisors[i].B_id =
+                div_j.at("divisors")[i].at("B_id");
+            divisors.back().divisors[i].C_id =
+                div_j.at("divisors")[i].at("C_id");
+            divisors.back().divisors[i].child_id =
+                div_j.at("divisors")[i].at("child_id");
         }
     }
 }
@@ -147,7 +154,7 @@ nlohmann::json MeasurementLookupTree::serialize() const {
         if (!point.material) {
             p_j["material"] = nullptr;
         } else {
-            // TODO:
+            p_j["material"] = point.material->to_json();
         }
         p_j["position"] = to_json(point.position);
         out["points"].push_back(p_j);
@@ -171,5 +178,43 @@ nlohmann::json MeasurementLookupTree::serialize() const {
         out["divisor_nodes"].push_back(d_j);
     }
     return out;
+}
+
+CUDAMaterialLookupTree MeasurementLookupTree::upload_to_cuda() const {
+    std::vector<CUDAMaterialLookupTree::MeasurementPoint> cuda_points;
+    cuda_points.reserve(measurement_points.size());
+    for (const auto& point : measurement_points) {
+        if (point.material) {
+            cuda_points.push_back(
+                {point.material->upload_to_cuda(), point.position});
+        } else {
+            cuda_points.push_back({{}, point.position});
+        }
+    }
+    CUDABuffer buff_pts;
+    buff_pts.alloc_and_upload(cuda_points);
+    std::vector<CUDAMaterialLookupTree::DivisorNode> cuda_div_nodes;
+    cuda_div_nodes.reserve(divisors.size());
+    for (const auto& div_node : divisors) {
+        CUDAMaterialLookupTree::DivisorNode cuda_div_node;
+        cuda_div_node.A = div_node.A;
+        cuda_div_node.B = div_node.B;
+        cuda_div_node.C = div_node.C;
+        cuda_div_node.parent_id = div_node.parent_id;
+        for (int i = 0; i < 4; ++i) {
+            cuda_div_node.divisors[i] = {
+                div_node.divisors[i].A_id, div_node.divisors[i].B_id,
+                div_node.divisors[i].C_id, div_node.divisors[i].child_id};
+        }
+        cuda_div_nodes.push_back(std::move(cuda_div_node));
+    }
+    CUDABuffer buff_divs;
+    buff_divs.alloc_and_upload(cuda_div_nodes);
+    return {reinterpret_cast<CUDAMaterialLookupTree::MeasurementPoint*>(
+                buff_pts.d_pointer()),
+            measurement_points.size(),
+            reinterpret_cast<CUDAMaterialLookupTree::DivisorNode*>(
+                buff_divs.d_pointer()),
+            cuda_div_nodes.size()};
 }
 }  // namespace chameleon
