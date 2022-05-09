@@ -49,20 +49,20 @@ IsotropicBRDFMeasurement::IsotropicBRDFMeasurement(const MeasurementHit& hit)
     } else {
         axis_n = glm::normalize(glm::cross(normal, {0, 0, 1}));
     }
-    print_vec(axis_n, "axis_n");
+    // print_vec(axis_n, "axis_n");
     float angle_n = std::acos(normal.z);
-    print_var(angle_n,"angle_n");
+    // print_var(angle_n,"angle_n");
     glm::vec3 test_mesh_normal = glm::rotate(normal, angle_n, axis_n);
-    print_vec(test_mesh_normal, "test_mesh_normal");
+    // print_vec(test_mesh_normal, "test_mesh_normal");
     glm::vec3 eye = glm::rotate(glm::normalize(hit.eye), angle_n, axis_n);
-    print_vec(eye, "rot_eye");
+    // print_vec(eye, "rot_eye");
     glm::vec3 light = glm::rotate(glm::normalize(hit.light), angle_n, axis_n);
-    print_vec(light, "rot_light");
+    // print_vec(light, "rot_light");
 
     float eye_azimuth;
     std::tie(eye_azimuth,eye_elevation) = vec_to_azimuth_elevation(eye);
-    print_var(eye_azimuth, "eye_azimuth");
-    print_var(eye_elevation, "eye_elevation");
+    // print_var(eye_azimuth, "eye_azimuth");
+    // print_var(eye_elevation, "eye_elevation");
     light = glm::rotateZ(light, eye_azimuth);
 
     std::tie(light_azimuth, light_elevation) = vec_to_azimuth_elevation(light);

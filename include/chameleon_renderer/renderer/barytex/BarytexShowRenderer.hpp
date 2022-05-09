@@ -4,19 +4,19 @@
 #include <chameleon_renderer/renderer/Renderer.hpp>
 #include <chameleon_renderer/renderer/RenderLayers.hpp>
 #include <chameleon_renderer/cuda/LaunchParams.h>
-#include <chameleon_renderer/materials/barytex/MeasurementHit.hpp>
+#include <chameleon_renderer/materials/barytex/MaterialLookupForest.hpp>
 #include <chameleon_renderer/renderer/barytex/BarytexObservation.hpp>
 
 namespace chameleon {
 
-struct BarytexLearnRenderer : Renderer {
+struct BarytexShowRenderer : Renderer {
     using launch_params_t = barytex_show_render::LaunchParams;
 
     struct OutputData {
-        VectorLayer<MeasurementHit> measurements;
-        //metadata ? 
+        ImageLayer<cv::Vec3f> view;
+        ImageLayer<uchar> mask;
 
-        void resize(size_t maximum_hitcount);
+        void resize(int x, int y);
         void clear();
     };
     
@@ -24,8 +24,8 @@ struct BarytexLearnRenderer : Renderer {
     OutputData out_data;
     CUDABuffer launch_params_buff;
     launch_params_t launch_params;
-
-    BarytexLearnRenderer();
+    
+    BarytexShowRenderer();
 
     void setup() override;
 
@@ -35,8 +35,15 @@ struct BarytexLearnRenderer : Renderer {
 
     CalibratedCamera& camera(const std::string& cam_label);
 
-    const OutputData& render(const BarytexObservation& observation);
+    const OutputData& render(const std::string& camera_label);
 
-    CUDAArray<MeasurementHit> get_cuda();
+    launch_params_t::Layers get_cuda_output();
+
+    void setup_material(const MaterialLookupForest& mlf);
+
+
+private:
+    std::optional<CUDAMaterialLookupForest> material_forest;
+
 };
 }  // namespace chameleon

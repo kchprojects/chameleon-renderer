@@ -31,8 +31,8 @@ void test_blinphong() {
     double alpha = 0.1;
     glm::vec3 normal = {0, 0, 1};
     ModelSolver<MaterialModel::BlinPhong> solver;
-    for (float elevation = 0; elevation < M_PI / 2; elevation += M_PI / 32) {
-        for (float azimuth = 0; azimuth < M_PI / 2; azimuth += M_PI / 32) {
+    for (float elevation =  M_PI / 32; elevation < M_PI / 2; elevation += M_PI / 32) {
+        for (float azimuth = M_PI / 32; azimuth < M_PI / 2; azimuth += M_PI / 32) {
             IsotropicBRDFMeasurement m;
             m.world_coordinates = {0, 0, 0};
             m.eye_elevation = elevation;
@@ -90,9 +90,9 @@ void test_cooktor() {
 }
 
 int main() {
-    test_lambert();
+    // test_lambert();
     test_blinphong();
-    test_cooktor();
+    // test_cooktor();
     return 0;
 }
 

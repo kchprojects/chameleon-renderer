@@ -7,8 +7,7 @@ void BarytexLearnRenderer::OutputData::resize(size_t maximum_hitcount) {
 
 void BarytexLearnRenderer::OutputData::clear() { measurements.clear(); }
 
-CUDAArray<MeasurementHit>
-BarytexLearnRenderer::get_cuda() {
+CUDAArray<MeasurementHit> BarytexLearnRenderer::get_cuda() {
     CUDAArray<MeasurementHit> out;
     out.data =
         reinterpret_cast<MeasurementHit*>(out_data.measurements.buffer_ptr());
@@ -34,16 +33,17 @@ BarytexLearnRenderer::BarytexLearnRenderer() {
  */
 void BarytexLearnRenderer::setup() {
     PING raygen_module =
-        base_module_create("./barytex_shaders/raygen.ptx", moduleCompileOptions,
-                           pipelineCompileOptions);
-    miss_module = base_module_create(
-        "./barytex_shaders/miss.ptx", moduleCompileOptions, pipelineCompileOptions);
+        base_module_create("./barytex_shaders/learn/raygen.ptx",
+                           moduleCompileOptions, pipelineCompileOptions);
+    miss_module =
+        base_module_create("./barytex_shaders/learn/miss.ptx",
+                           moduleCompileOptions, pipelineCompileOptions);
     anyhit_module =
-        base_module_create("./barytex_shaders/any_hit.ptx", moduleCompileOptions,
-                           pipelineCompileOptions);
+        base_module_create("./barytex_shaders/learn/any_hit.ptx",
+                           moduleCompileOptions, pipelineCompileOptions);
     closest_hit_module =
-        base_module_create("./barytex_shaders/closest_hit.ptx", moduleCompileOptions,
-                           pipelineCompileOptions);
+        base_module_create("./barytex_shaders/learn/closest_hit.ptx",
+                           moduleCompileOptions, pipelineCompileOptions);
     PING programs.add_raygen_program("renderFrame", raygen_module);
     programs.add_ray("radiance", {miss_module}, {anyhit_module},
                      {closest_hit_module});
@@ -68,7 +68,8 @@ PhotometryCamera& BarytexLearnRenderer::photometry_camera(
                                 "] unknown camera: " + cam_label);
 }
 
-const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(const BarytexObservation& observation) {
+const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(
+    const BarytexObservation& observation) {
     std::string camera_label = observation.cam_label;
     if (photometry_cameras.count(camera_label) <= 0) {
         spdlog::error("[ {} ] unsupported camera: {}", __PRETTY_FUNCTION__,
@@ -87,9 +88,9 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(const Baryt
             "input image not matching camera resolution");
     }
 
-    int cols =observation.image.cols;
-    int rows =observation.image.rows;
-    out_data.measurements.resize(cols*rows*launch_params.sample_multiplier);
+    int cols = observation.image.cols;
+    int rows = observation.image.rows;
+    out_data.measurements.resize(cols * rows * launch_params.sample_multiplier);
     spdlog::info("Start render");
     TICK;
 
@@ -117,7 +118,11 @@ const BarytexLearnRenderer::OutputData& BarytexLearnRenderer::render(const Baryt
     TOCK;
     spdlog::info("Render done");
 
-    CUDA_CHECK(cudaFree(launch_params.observation.light.radial_attenuation.data));
+    CUDA_CHECK(
+        cudaFree(launch_params.observation.light.radial_attenuation.data));
+
+    CUDA_CHECK(
+        cudaFree(launch_params.observation.image.data));
     return out_data;
 }
 

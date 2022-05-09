@@ -25,4 +25,13 @@ struct RadiationRayData {
 
 }  // namespace barytex_learn_render
 
+namespace barytex_show_render {
+    struct RadiationRayData {
+        glm::vec3 value = {0,0,0};
+        uint8_t mask = 0;
+        bool visible = false;
+    };
+    
+}  // namespace barytex_learn_render
+
 }  // namespace chameleon

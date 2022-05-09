@@ -19,8 +19,9 @@ namespace chameleon
         for(const nlohmann::json& light_json :setup_json["lights"]){
             eigen_utils::Vec3<float> pos;
             pos << light_json["position"]["x"],light_json["position"]["y"],light_json["position"]["z"];
+            pos = pos/28;
             eigen_utils::Vec3<float> dir;
-            pos << light_json["direction"]["x"],light_json["direction"]["y"],light_json["direction"]["z"];
+            dir << light_json["direction"]["x"],light_json["direction"]["y"],light_json["direction"]["z"];
             PING;
             if(light_json.count("led_model") > 0 && characteristics.count(light_json["led_model"]) > 0){
                 lights[light_json["id"]] = std::make_shared<LedLight>();

@@ -1,4 +1,5 @@
 #include <chameleon_renderer/scene/Model.hpp>
+#include <chameleon_renderer/utils/io.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -52,6 +53,11 @@ TriangleMesh::TraversableTriangleMesh::TraversableTriangleMesh(
 
         ++curr_face;
     }
+    std::cout<<"TMesh done" << std::endl;
+}
+
+void TriangleMesh::TraversableTriangleMesh::export_ttm(const fs::path& path)const{
+    
 }
 /*! find vertex with given position, normal, texcoord, and return
     its vertex ID, or, if it doesn't exit, add it to the mesh, and

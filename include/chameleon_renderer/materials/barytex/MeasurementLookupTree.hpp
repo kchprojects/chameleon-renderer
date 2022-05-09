@@ -1,8 +1,8 @@
 #pragma once
 
+#include <chameleon_renderer/materials/barytex/CUDAMaterialLookupTree.hpp>
 #include <chameleon_renderer/materials/barytex/GenericMaterial.hpp>
 #include <chameleon_renderer/materials/barytex/MeasurementTree.hpp>
-#include <chameleon_renderer/materials/barytex/CUDAMaterialLookupTree.hpp>
 #include <nlohmann/json.hpp>
 
 namespace chameleon {
@@ -13,19 +13,19 @@ struct MeasurementLookupTree {
         bool filled = false;
 
         MeasurementPoint() = default;
-        MeasurementPoint(const MeasurementPoint& other)
-            : position(other.position), filled(other.filled) {}
+        // MeasurementPoint(const MeasurementPoint& other)
+        //     : position(other.position), filled(other.filled) {}
 
-        void swap(MeasurementPoint& other) {
-            using std::swap;
-            swap(material, other.material);
-            swap(position, other.position);
-            swap(filled, other.filled);
-        }
-        MeasurementPoint& operator=(MeasurementPoint other) {
-            swap(other);
-            return *this;
-        }
+        // void swap(MeasurementPoint& other) {
+        //     using std::swap;
+        //     swap(material, other.material);
+        //     swap(position, other.position);
+        //     swap(filled, other.filled);
+        // }
+        // MeasurementPoint& operator=(MeasurementPoint other) {
+        //     swap(other);
+        //     return *this;
+        // }
     };
 
     struct Divisor {
@@ -38,7 +38,7 @@ struct MeasurementLookupTree {
 
     struct DivisorNode {
         int parent_id = -1;
-        std::array<Divisor, 4> divisors;
+        Divisor divisors[4];
         int A, B, C;
     };
 
@@ -46,9 +46,9 @@ struct MeasurementLookupTree {
                           const glm::vec3& C, float min_distance,
                           int max_depth = -1);
     MeasurementLookupTree(const nlohmann::json&);
+    MeasurementLookupTree()=default;
 
     CUDAMaterialLookupTree upload_to_cuda() const;
-
 
     std::vector<MeasurementPoint> measurement_points;
     std::vector<DivisorNode> divisors;

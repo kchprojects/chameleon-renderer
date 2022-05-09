@@ -1,10 +1,12 @@
 #pragma once
 
 #include <chameleon_renderer/utils/math_utils.hpp>
+#include <chameleon_renderer/utils/file_utils.hpp>
 #include <memory>
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
 #include <utility>
+
 #include <vector>
 
 #include "SceneObject.hpp"
@@ -46,6 +48,8 @@ struct TriangleMesh {
 
         TraversableTriangleMesh(const TriangleMesh&);
 
+        void export_ttm(const fs::path& path)const;
+
         const TriangleMesh& base_mesh;
         std::vector<Face> faces;
         std::unordered_map<std::pair<int, int>, Edge, Edge::Hash> edges;
@@ -58,6 +62,7 @@ struct TriangleMesh {
         }
         return *_traversable_mesh;
     }
+    
     TriangleMesh()=default;
     TriangleMesh(const TriangleMesh& other)
         : vertex(other.vertex),

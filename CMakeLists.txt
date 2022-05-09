@@ -68,7 +68,7 @@ nvcuda_compile_ptx(
   DEPENDENCIES
   ${BARYTEX_SHADERS_DEPENDENCY_HEADERS}
   TARGET_PATH
-  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/barytex_shaders"
+  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/barytex_shaders/learn/"
   GENERATED_FILES
   PTX_SOURCES
   NVCC_OPTIONS
@@ -81,9 +81,36 @@ nvcuda_compile_ptx(
   "-I${SHADERS_DEPENDENCY_DIRS}"
   "-I${glm_dir}")
 
-message("ptx: ${PTX_SOURCES}")
+set(PTX_LEARN_SOURCES ${PTX_SOURCES})
+
+set(BARYTEX_SHADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/renderer/barytex/shaders/show)
+set(BARYTEX_SHADERS ${BARYTEX_SHADER_PATH}/any_hit.cu ${BARYTEX_SHADER_PATH}/closest_hit.cu
+            ${BARYTEX_SHADER_PATH}/miss.cu ${BARYTEX_SHADER_PATH}/raygen.cu)
+
+nvcuda_compile_ptx(
+  SOURCES
+  ${BARYTEX_SHADERS}
+  DEPENDENCIES
+  ${BARYTEX_SHADERS_DEPENDENCY_HEADERS}
+  TARGET_PATH
+  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/barytex_shaders/show/"
+  GENERATED_FILES
+  PTX_SOURCES
+  NVCC_OPTIONS
+  "--gpu-architecture=compute_50"
+  "--use_fast_math"
+  "--relocatable-device-code=true"
+  "--generate-line-info"
+  "-Wno-deprecated-gpu-targets"
+  "-I${OptiX_INCLUDE}"
+  "-I${SHADERS_DEPENDENCY_DIRS}"
+  "-I${glm_dir}")
+
+set(PTX_SHOW_SOURCES ${PTX_SOURCES})
+
+
 set(OPTRENDER_SOURCES ${ALL_SOURCES})
-add_library(${PROJECT_NAME} ${OPTRENDER_SOURCES} ${PTX_SOURCES})
+add_library(${PROJECT_NAME} ${OPTRENDER_SOURCES} ${PTX_LEARN_SOURCES} ${PTX_SHOW_SOURCES})
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC ${OptiX_INCLUDE} ${OpenCV_INCLUDE_DIRS} include

@@ -4,7 +4,7 @@
 #include <chameleon_renderer/materials/barytex/GeneralMeasurement.hpp>
 #include <chameleon_renderer/materials/barytex/io.hpp>
 #include <chameleon_renderer/optix/OptixScene.hpp>
-#include <chameleon_renderer/renderer/barytex/BarytexLearnRenderer.hpp>
+#include <chameleon_renderer/renderer/barytex/BarytexShowRenderer.hpp>
 #include <chrono>
 #include <fstream>
 #include <memory>
@@ -96,6 +96,20 @@ struct Args {
     // fs::path views_path =
     //     "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
 
+    // fs::path measurements_path =
+    //     "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/"
+    //     "validate_solver/mesurements/fi_roc_mes_att_test.isobrdf";
+    // fs::path data_path = "/home/karelch/Diplomka/dataset_v1/fi_rock/";
+    // fs::path lights_path =
+    //     "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
+    //     "chameleon/lights.json";
+    // std::string extension = ".png";
+    // fs::path obj_path =
+    //     "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
+
+    // fs::path views_path =
+    //     "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
+
     fs::path data_path = "/home/karelch/Diplomka/dataset_v2/mag_box/";
     fs::path lights_path =
         "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
@@ -103,12 +117,15 @@ struct Args {
     std::string extension = ".png";
     fs::path obj_path =
         "/home/karelch/Diplomka/dataset_v2/mag_box/reconstructed.obj";
+    
+    fs::path measurements_path =
+        "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box/mag_box_mes.isobrdf";
 
     fs::path views_path =
         "/home/karelch/Diplomka/dataset_v2/mag_box/cameras.json";
-    std::string res_dir = "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box";
+    fs::path res_dir = "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box";
 
-                          Args() = default;
+    Args() = default;
     Args(int argc, char** argv) {
         if (argc > 1) {
             data_path = argv[1];
@@ -121,7 +138,7 @@ struct Args {
     }
 };
 
-void setup_views(BarytexLearnRenderer& renderer,
+void setup_views(BarytexShowRenderer& renderer,
                  const fs::path& view_json_path) {
     std::ifstream ifs(view_json_path);
     Json j = Json::parse(ifs);
@@ -194,11 +211,30 @@ extern "C" int main(int argc, char** argv) {
 
     HWSetup hw_setup = {setup_json};
 
-    BarytexLearnRenderer renderer;
+    BarytexShowRenderer renderer;
     renderer.setup();
     renderer.setup_scene(scene);
 
     setup_views(renderer, args.views_path);
+    std::cout << "loading" << std::endl;
+    // MaterialLookupForest lamb_forest;
+    // lamb_forest.load_bin("test_ser.lamb_forest");
+
+    // auto all_mes = import_isotropic_bin(args.measurements_path);
+    // GeneralMeasurement gm(sm.mesh(0), all_mes, 0.02, 3);
+    // compute_model_gs<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_gs.lamb_forest");
+    // compute_model<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_col.lamb_forest");
+    // compute_model<MaterialModel::BlinPhong>(gm, 0.01).serialize_bin(args.res_dir / "test_col.bp_forest");
+    // compute_model<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_col.ct_forest");
+    // auto blin_forest = compute_model<MaterialModel::CookTorrance>(gm, 0.01);
+    // blin_forest.serialize_bin("test_ser_mesh.ct_forest");
+    // MaterialLookupForest blin_forest;
+    // blin_forest.load_bin("test_ser_att.ctor_forest");
+
+    MaterialLookupForest lamb_forest;
+    lamb_forest.load_bin(args.res_dir / "test_col.lamb_forest");
+    renderer.setup_material(lamb_forest);
+    PING;
 
     // // cv::Mat out;
     cv::namedWindow("view", cv::WINDOW_NORMAL);
@@ -206,59 +242,28 @@ extern "C" int main(int argc, char** argv) {
     bool should_end = false;
     std::vector<int> light_ids = {4};
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
-    std::vector<IsotropicBRDFMeasurement> all_mes;
-    // should be 50
-    for (int position = 0; position < 50; position += 10) {
+    for (int position = 0; position < 50; ++position) {
         std::string cam_label = std::to_string(position) + args.extension;
-        std::cout << "++++++++++++" << position << std::endl;
+
         // should be to 127
-        for (int light_id = 0; light_id < 127; light_id += 3) {
+        for (int light_id = 0; light_id < 70; ++light_id) {
             // for (int light_id : light_ids) {
-            BarytexObservation observation;
-            observation.cam_label = cam_label;
-            auto img_path = args.data_path /
-                            ("position_" + std::to_string(position)) /
-                            (std::to_string(light_id) + args.extension);
-            observation.image = cv::imread(img_path.string(), cv::IMREAD_COLOR);
-            if (observation.image.empty()) {
-                continue;
+            if (hw_setup.lights.count(light_id) > 0) {
+                renderer.photometry_camera(cam_label).set_lights(
+                    {hw_setup.lights[light_id]});
+                auto out = renderer.render(cam_label);
+                cv::Mat view = out.view.get_cv_mat();
+                view.convertTo(view,CV_8UC1);
+                cv::cvtColor(view,view,cv::COLOR_RGB2BGR);
+                cv::Mat1b mask = out.mask.get_cv_mat();
+                // cv::imwrite("views/" + std::to_string(position) + "_" + std::to_string(light_id) + ".png", view);
+                cv::imshow("view", view);
+                // cv::imshow("mask", mask);
+                cv::waitKey();
+                // break;
             }
-            cv::cvtColor(observation.image, observation.image,
-                         cv::COLOR_BGR2RGB);
-            // cv::imshow("obs_image", observation.image);
-            // cv::waitKey();
-            observation.light = hw_setup.lights[light_id];
-            auto out = renderer.render(observation);
-            auto mes = out.measurements.download();
-            int counter = 0;
-            for (const auto& m : mes) {
-                if (m.is_valid &&
-                    !(m.value.x == 0 && m.value.y == 0 && m.value.z == 0)) {
-                    all_mes.emplace_back(m);
-                }
-            }
-            // export_measurement(mes, "mes.json",true);
-            // mes = import_measurement("mes.json");
-
-            export_measurement_pcd(
-                args.res_dir + "/pcd/" + std::to_string(light_id) + ".txt",
-                mes);
         }
-        // break;
-        // break;
-
-        // export_measurement_pcd(
-        //     "on_cube" + std::to_string(position) + ".txt", all_mes);
-        // GeneralMeasurement gm(sm.mesh(0),all_mes,0.02,1);
-        // auto lambert_forest = compute_model<MaterialModel::Lambert>(gm,10);
-        // auto lf_json = lambert_forest.serialize();
-        // {
-        //     std::ofstream ofs("fi_rock_lambert.json");
-        //     ofs << lf_json<<std::endl;
-        // }
-        // break;
     }
-    export_isotropic_bin(all_mes, args.res_dir + "/test_mes.isobrdf");
     return 0;
 }  // namespace chameleon
 

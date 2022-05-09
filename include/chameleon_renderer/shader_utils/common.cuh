@@ -1,10 +1,11 @@
 #pragma once
+#include <chameleon_renderer/cuda/CUDALight.h>
 #include <chameleon_renderer/cuda/TriangleMeshSBTData.h>
 #include <cuda_runtime.h>
 #include <optix_device.h>
-#include <chameleon_renderer/utils/math_utils.hpp>
 
 #include <chameleon_renderer/shader_utils/PerRayData.cuh>
+#include <chameleon_renderer/utils/math_utils.hpp>
 
 namespace chameleon {
 
@@ -38,7 +39,7 @@ inline __device__ float dot(const glm::vec4& a, const glm::vec4& b) {
 }
 
 inline __device__ float distance(const glm::vec3& a, const glm::vec3& b) {
-    return sqrt(dot(a-b,a-b));
+    return sqrt(dot(a - b, a - b));
 }
 
 inline __device__ glm::vec4 transform(const glm::mat4& mat,
@@ -58,17 +59,55 @@ inline __device__ glm::vec3 transform_point(const glm::mat4& mat,
     vec_4d = transform(mat, vec_4d);
     return {vec_4d.x, vec_4d.y, vec_4d.z};
 }
+inline __device__ float distance_attenuation(const glm::vec3& light_position,
+                                      const glm::vec3& camera_position,
+                                      const glm::vec3& object_position) {
+    
+    const float distance_factor = 0.001;
+    auto l_dist =
+        glm::distance(light_position, object_position) * distance_factor;
+    auto c_dist =
+        glm::distance(camera_position, object_position) * distance_factor;
+    return 1.f / (pow(l_dist + 1, 2.f) * pow(c_dist + 1, 2.f));
+}
+
+inline __device__ glm::vec3 min_vec(const glm::vec3& v, float val){
+    return {min(v.x,val),min(v.y,val),min(v.z,val)};
+}
+
+
+inline __device__ glm::vec3 max_vec(const glm::vec3& v, float val){
+    return {max(v.x,val),max(v.y,val),max(v.z,val)};
+}
+
+inline __device__ float radial_attenuation(const CUDALight& light,
+                                    const glm::vec3& L) {
+    if (light.l_type != LightType::LED_LIGHT) {
+        return 1;
+    }
+    glm::vec3 from_light = L;
+    float dp = glm::dot(light.direction, from_light);
+    if (dp <= 0) {
+        // printf("dp: %f, %f, %f\n",light.direction);
+        return 0;
+    }
+    float angle = acos(dp);
+    float angle_deg = 180.f * angle / M_PI;
+    int desc_angle = int(angle_deg+0.5f);
+    // printf("desc %d\n",desc_angle);
+    return light.radial_attenuation.data[desc_angle];
+
+}
 
 inline __device__ void print_mat(const glm::mat4& mat) {
-    std::printf("%f\t%f\t%f\t%f\n"
-    "%f\t%f\t%f\t%f\n"
-    "%f\t%f\t%f\t%f\n"
-    "%f\t%f\t%f\t%f\n\n",
-    mat[0][0],mat[1][0],mat[2][0],mat[3][0],
-    mat[0][1],mat[1][1],mat[2][1],mat[3][1],
-    mat[0][2],mat[1][2],mat[2][2],mat[3][2],
-    mat[0][3],mat[1][3],mat[2][3],mat[3][3]
-    );
+    std::printf(
+        "%f\t%f\t%f\t%f\n"
+        "%f\t%f\t%f\t%f\n"
+        "%f\t%f\t%f\t%f\n"
+        "%f\t%f\t%f\t%f\n\n",
+        mat[0][0], mat[1][0], mat[2][0], mat[3][0], mat[0][1], mat[1][1],
+        mat[2][1], mat[3][1], mat[0][2], mat[1][2], mat[2][2], mat[3][2],
+        mat[0][3], mat[1][3], mat[2][3], mat[3][3]);
 }
 
 struct SurfaceInfo {
@@ -126,7 +165,7 @@ inline __device__ SurfaceInfo get_surface_info() {
     // ------------------------------------------------------------------
     // compute shadow
     // ------------------------------------------------------------------
-    const glm::vec3 bary_coords = {(1.f - u - v),u,v};
+    const glm::vec3 bary_coords = {(1.f - u - v), u, v};
 
     const glm::vec3 surfPos = (1.f - u - v) * sbtData.vertex[index.x] +
                               u * sbtData.vertex[index.y] +
@@ -150,7 +189,8 @@ inline __device__ SurfaceInfo get_surface_info() {
         diffuseColor *= glm::vec3(fromTexture.x, fromTexture.y, fromTexture.z);
     }
     // TODO::differentiate meshes
-    return {Ns, Ng, surfPos, {tc.x, tc.y, 0}, diffuseColor,bary_coords,primID};
+    return {Ns,           Ng,          surfPos, {tc.x, tc.y, 0},
+            diffuseColor, bary_coords, primID};
 }
 
 }  // namespace chameleon

@@ -1,6 +1,7 @@
 #pragma once
+#include <ceres/ceres.h>
+
 #include <chameleon_renderer/materials/barytex/MaterialModel.hpp>
-#define DEBUG_MESSAGES
 #include <chameleon_renderer/utils/debug_io.hpp>
 namespace chameleon {
 
@@ -54,15 +55,15 @@ struct ModelSolver<MaterialModel::Lambert>
 
         template <typename T>
         bool operator()(const T* const albedo, T* residual) const {
-            print_vec(_measurement.light(), "light");
-            print_vec(_measurement.eye(), "eye");
-            print_var(*albedo, "albedo");
-            print_var(_y, "y");
-            print_var(weight, "weight");
+            // print_vec(_measurement.light(), "light");
+            // print_vec(_measurement.eye(), "eye");
+            // print_var(*albedo, "albedo");
+            // print_var(_y, "y");
+            // print_var(weight, "weight");
             auto predicted_y = ModelReflectance<model_t, T>::compute(
                 glm::vec3(0, 0, 1), _measurement.light(), _measurement.eye(),
                 ModelData<model_t, T>{*albedo});
-            print_var(predicted_y, "predicted");
+            // print_var(predicted_y, "predicted");
             *residual = (predicted_y - T(_measurement.value[index])) *
                         (predicted_y - T(_measurement.value[index])) *
                         T(weight);
@@ -97,12 +98,15 @@ struct ModelSolver<MaterialModel::BlinPhong>
         for (int i = 0; i < 3; ++i) {
             problems[i].AddParameterBlock(&res_data[i].albedo, 1);
             problems[i].AddParameterBlock(&res_data[i].Ks, 1);
+            problems[i].AddParameterBlock(&res_data[i].alpha, 1);
             problems[i].SetParameterLowerBound(&res_data[i].albedo, 0, 0.0);
             problems[i].SetParameterLowerBound(&res_data[i].Ks, 0, 0.0);
+            problems[i].SetParameterLowerBound(&res_data[i].alpha, 0, 0.0);
+            
         }
     }
 
-    struct Residual {
+    struct Residual : ceres::SizedCostFunction<1, 1, 1, 1> {
         Residual(IsotropicBRDFMeasurement measurement, glm::vec3 y_vec,
                  double weight, int index)
             : _measurement(std::move(measurement)),
@@ -111,14 +115,47 @@ struct ModelSolver<MaterialModel::BlinPhong>
               index(index) {}
 
         template <typename T>
-        bool operator()(const T* const albedo, const T* const Ks,
-                        const T* const alpha, T* residual) const {
-            auto predicted_y = ModelReflectance<model_t, T>::compute(
+        T compute(const T albedo, const T Ks, const T alpha) const {
+            return ModelReflectance<model_t, T>::compute(
                 glm::vec3(0, 0, 1), _measurement.light(), _measurement.eye(),
-                ModelData<model_t, T>{*albedo, *Ks, *alpha});
-            *residual =
-                pow(predicted_y - T(_measurement.value[index]), T(2.0)) *
-                T(weight);
+                ModelData<model_t, T>{albedo, Ks, alpha});
+        }
+
+        template <typename T>
+        bool compute_derivatives(const T albedo, const T Ks, const T alpha,
+                                 T** jacobians) const {
+            jacobians[0][0] = _measurement.light().z;
+            glm::vec3 H =
+                glm::normalize(_measurement.light() + _measurement.eye());
+            auto norm_dot = glm::dot(H, glm::vec3(0, 0, 1));
+            if(norm_dot < 0.001){
+                return false;
+            }
+            T spec_pow_alpha = std::pow(norm_dot, alpha);
+            jacobians[0][1] = spec_pow_alpha;
+            jacobians[0][2] = Ks * spec_pow_alpha * std::log(norm_dot);
+
+            return true;
+        }
+
+        bool Evaluate(double const* const* parameters, double* residuals,
+                      double** jacobians) const override {
+            double predicted_y =
+                compute(parameters[0][0], parameters[0][1], parameters[0][2]);
+
+            double res =
+                std::pow(predicted_y - _measurement.value[index], 2.0) * weight;
+            residuals[0] = res;
+            if (jacobians != nullptr && jacobians[0] != nullptr) {
+                bool status = compute_derivatives(parameters[0][0], parameters[0][1],
+                                    parameters[0][2], jacobians);
+                if(! status){
+                    return false;
+                }
+                jacobians[0][0] *= 2 * (predicted_y - _y) * weight;
+                jacobians[0][1] *= 2 * (predicted_y - _y) * weight;
+                jacobians[0][2] *= 2 * (predicted_y - _y) * weight;
+            }
             return true;
         }
 
@@ -131,15 +168,22 @@ struct ModelSolver<MaterialModel::BlinPhong>
 
     void add_observation(const IsotropicBRDFMeasurement& measurement,
                          double weight = 1) {
+        // for (int i = 0; i < 3; ++i) {
+        //     problems[i].AddResidualBlock(
+        //         new ceres::AutoDiffCostFunction<Residual, 1, 1, 1, 1>(
+        //             new Residual(measurement, measurement.value, weight, i)),
+        //         nullptr, &res_data[i].albedo, &res_data[i].Ks,
+        //         &res_data[i].alpha);
+        // }
+
         for (int i = 0; i < 3; ++i) {
             problems[i].AddResidualBlock(
-                new ceres::AutoDiffCostFunction<Residual, 1, 1, 1, 1>(
-                    new Residual(measurement, measurement.value, weight, i)),
+                new Residual(measurement, measurement.value, weight, i),
                 nullptr, &res_data[i].albedo, &res_data[i].Ks,
                 &res_data[i].alpha);
         }
     }
-};
+};  // namespace chameleon
 
 template <>
 struct ModelSolver<MaterialModel::CookTorrance>
@@ -156,7 +200,7 @@ struct ModelSolver<MaterialModel::CookTorrance>
             problems[i].SetParameterLowerBound(&res_data[i].albedo, 0, 0.0);
             problems[i].SetParameterLowerBound(&res_data[i].F0, 0, 0.0);
             problems[i].SetParameterLowerBound(&res_data[i].Ks, 0, 0.0);
-            problems[i].SetParameterLowerBound(&res_data[i].m, 0, 0.0);
+            problems[i].SetParameterLowerBound(&res_data[i].m, 0, 0.0001);
         }
     }
 

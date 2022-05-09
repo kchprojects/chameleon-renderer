@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-
+#define DEBUG_MESSAGES
 
 inline void print_vec(glm::vec3 v, std::string name) {
 #ifdef DEBUG_MESSAGES

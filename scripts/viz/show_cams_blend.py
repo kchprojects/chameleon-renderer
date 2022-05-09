@@ -18,7 +18,7 @@ def load_setup(filename):
 def load_lights(filename):
     lights = {}
     with open(filename, "r") as file:
-        lights = json.load(file)
+        lights = json.load(file)["lights"]
     return lights
 
 
@@ -50,13 +50,15 @@ def create_setup(setup_name, matrices,lights):
         new_cam = make_camera_object(f"{mat_id}",matrices[mat_id])
         curr_coll.objects.link(new_cam)
         for l in lights:
-            position = np.array([l["position"][x] for x in "xyz"])
-            lo = make_light_object(position, str(l["id"]), matrices[mat_id])
+            position = np.array([l["position"][x] for x in "xyz"])/4.11
+            #m = np.eye(4,dtype=np.float64)
+            m=matrices[mat_id]
+            lo = make_light_object(position, str(l["id"]), m)
             curr_coll.objects.link(lo)
         collection.children.link(curr_coll)
         break
     bpy.context.scene.collection.children.link(collection)
     
-lights = load_lights("/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/lights.json")
-matrices = load_setup("/home/karelch/Diplomka/rendering/chameleon-renderer/examples/validate_colmap/cameras/cameras.json")
+lights = load_lights("/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/chameleon/lights.json")
+matrices = load_setup("/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json")
 create_setup("sexy_cams", matrices,lights)

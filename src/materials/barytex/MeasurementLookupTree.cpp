@@ -2,6 +2,7 @@
 #include <chameleon_renderer/cuda/CUDABuffer.hpp>
 #include <chameleon_renderer/materials/barytex/MeasurementLookupTree.hpp>
 #include <chameleon_renderer/utils/math_io.hpp>
+#include <chameleon_renderer/utils/terminal_utils.hpp>
 
 namespace chameleon {
 MeasurementLookupTree::MeasurementLookupTree(const glm::vec3& A,
@@ -180,21 +181,24 @@ nlohmann::json MeasurementLookupTree::serialize() const {
     return out;
 }
 
-CUDAMaterialLookupTree MeasurementLookupTree::upload_to_cuda() const {
+CUDAMaterialLookupTree MeasurementLookupTree::  upload_to_cuda() const {
     std::vector<CUDAMaterialLookupTree::MeasurementPoint> cuda_points;
     cuda_points.reserve(measurement_points.size());
+    // PING;
     for (const auto& point : measurement_points) {
-        if (point.material) {
+        if (point.material != nullptr) {
             cuda_points.push_back(
                 {point.material->upload_to_cuda(), point.position});
         } else {
             cuda_points.push_back({{}, point.position});
         }
     }
+    // PING;
     CUDABuffer buff_pts;
     buff_pts.alloc_and_upload(cuda_points);
     std::vector<CUDAMaterialLookupTree::DivisorNode> cuda_div_nodes;
     cuda_div_nodes.reserve(divisors.size());
+    // PING;
     for (const auto& div_node : divisors) {
         CUDAMaterialLookupTree::DivisorNode cuda_div_node;
         cuda_div_node.A = div_node.A;
@@ -208,6 +212,7 @@ CUDAMaterialLookupTree MeasurementLookupTree::upload_to_cuda() const {
         }
         cuda_div_nodes.push_back(std::move(cuda_div_node));
     }
+    // PING;
     CUDABuffer buff_divs;
     buff_divs.alloc_and_upload(cuda_div_nodes);
     return {reinterpret_cast<CUDAMaterialLookupTree::MeasurementPoint*>(

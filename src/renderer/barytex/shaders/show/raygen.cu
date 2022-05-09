@@ -1,15 +1,14 @@
 #include <chameleon_renderer/cuda/RayType.h>
 
-#include <chameleon_renderer/renderer/barytex/BarytexLearnLaunchParamProvider.cuh>
+#include <chameleon_renderer/renderer/barytex/BarytexShowLaunchParamProvider.cuh>
 #include <chameleon_renderer/shader_utils/common.cuh>
 
 namespace chameleon {
-using namespace barytex_learn_render;
+using namespace barytex_show_render;
 
-inline __device__ RadiationRayData cast_ray(glm::vec3 ray_base,
-                                            const chameleon::CUDACamera& camera,
-                                            photometry_renderer::ray_t ray_type,
-                                            const glm::vec3& value) {
+inline __device__ RadiationRayData
+cast_ray(glm::vec3 ray_base, const chameleon::CUDACamera& camera,
+         photometry_renderer::ray_t ray_type) {
     // generate ray direction
     ray_base.z = 1;
     glm::vec3 rayDir = camera.camera_mat_inverse * ray_base;
@@ -19,7 +18,6 @@ inline __device__ RadiationRayData cast_ray(glm::vec3 ray_base,
     // printf("%f %f %f \n",rayDir.x,rayDir.y,rayDir.z);
 
     RadiationRayData prd;
-    prd.hit.value = value;
 
     uint32_t u0, u1;
     packPointer(&prd, u0, u1);
@@ -40,24 +38,24 @@ inline __device__ RadiationRayData cast_ray(glm::vec3 ray_base,
     return prd;
 }
 
-// inline __device__ CUDAArray<RadiationRayData> multisample_square(
-//     int ix, int iy, const CUDACamera& camera) {
-//     RadiationRayData rdb[4];
+inline __device__ CUDAArray<RadiationRayData> multisample_square(
+    int ix, int iy, const CUDACamera& camera) {
+    RadiationRayData rdb[4];
 
-//     rdb[0] = cast_ray(glm::vec3(ix + .25f, iy + .25f, 1), camera,
-//                       photometry_renderer::ray_t::RADIANCE);
+    rdb[0] = cast_ray(glm::vec3(ix + .25f, iy + .25f, 1), camera,
+                      photometry_renderer::ray_t::RADIANCE);
 
-//     rdb[1] = cast_ray(glm::vec3(ix + .25f, iy + .75f, 1), camera,
-//                       photometry_renderer::ray_t::RADIANCE);
+    rdb[1] = cast_ray(glm::vec3(ix + .25f, iy + .75f, 1), camera,
+                      photometry_renderer::ray_t::RADIANCE);
 
-//     rdb[2] = cast_ray(glm::vec3(ix + .75f, iy + .25f, 1), camera,
-//                       photometry_renderer::ray_t::RADIANCE);
+    rdb[2] = cast_ray(glm::vec3(ix + .75f, iy + .25f, 1), camera,
+                      photometry_renderer::ray_t::RADIANCE);
 
-//     rdb[3] = cast_ray(glm::vec3(ix + .75f, iy + .75f, 1), camera,
-//                       photometry_renderer::ray_t::RADIANCE);
+    rdb[3] = cast_ray(glm::vec3(ix + .75f, iy + .75f, 1), camera,
+                      photometry_renderer::ray_t::RADIANCE);
 
-//     return {rdb, 4};
-// }
+    return {rdb, 4};
+}
 
 //------------------------------------------------------------------------------
 // ray gen program - the actual rendering happens in here
@@ -80,23 +78,10 @@ extern "C" __global__ void __raygen__renderFrame() {
     //     // printf("[%f, %f, %f ],\n", rayDir.x, rayDir.y, rayDir.z);
     // }
 
-    RadiationRayData rdb =
-        cast_ray(glm::vec3(ix + .5f, iy + .5f, 1), camera,
-                 photometry_renderer::ray_t::RADIANCE,
-                 optixLaunchParams.observation.image.data[fbIndex] / 255.0f);
-    if (rdb.hit.is_valid) {
-        if (fbIndex > (optixLaunchParams.observation.image.rows *
-                       optixLaunchParams.observation.image.cols)) {
-            printf("%d, %d : %d, %d\n", ix, iy,
-                   optixLaunchParams.observation.image.cols,
-                   optixLaunchParams.observation.image.rows);
-        } else {
-            rdb.hit.value =
-                optixLaunchParams.observation.image.data[fbIndex] / 255.f;
-        }
-    }
-    optixLaunchParams.render_data
-        .data[fbIndex * optixLaunchParams.sample_multiplier] = rdb.hit;
+    RadiationRayData prd = cast_ray(glm::vec3(ix + .5f, iy + .5f, 1), camera,
+                                    photometry_renderer::ray_t::RADIANCE);
+    optixLaunchParams.render_data.view[fbIndex] = prd.value;
+    optixLaunchParams.render_data.mask[fbIndex] = prd.mask;
     // if (rdb.hit.is_valid) {
     // if (false) {
     //     CUDAArray<RadiationRayData> rdb_array =
@@ -104,8 +89,8 @@ extern "C" __global__ void __raygen__renderFrame() {
 
     //     for (int i = 0; i < rdb_array.size; ++i) {
     //         optixLaunchParams.render_data
-    //             .data[fbIndex * optixLaunchParams.sample_multiplier + i + 1] =
-    //             rdb_array.data[i].hit;
+    //             .data[fbIndex * optixLaunchParams.sample_multiplier + i + 1]
+    //             = rdb_array.data[i].hit;
     //     }
     // }
 }

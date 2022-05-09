@@ -5,26 +5,29 @@
 
 namespace chameleon {
 
-template <MaterialModel model_t>
+template <MaterialModel model_t,size_t CH>
 struct GenericMaterial;
 
 struct IGenericMaterial {
-    MaterialModel m = MaterialModel::Lambert;
+    MaterialModel m = MaterialModel::NoModel;
+    size_t channel_count = 0;
 
     virtual nlohmann::json to_json() const = 0;
 
     CUDAGenericMaterial upload_to_cuda() const;
 };
 
-template <MaterialModel model_t>
+template <MaterialModel model_t,size_t CH = 3>
 struct GenericMaterial : public IGenericMaterial {
     using data_t = ModelData<model_t, double>;
-    std::array<data_t, 3> data_rgb;
+    using IGenericMaterial::m;
+    std::array<data_t, CH> data_rgb;
 
-    GenericMaterial() = default;
-    GenericMaterial(std::array<data_t, 3> data_rgb)
+    GenericMaterial() { m = model_t;channel_count=CH; }
+    GenericMaterial(std::array<data_t, CH> data_rgb)
         : data_rgb(std::move(data_rgb)) {
         m = model_t;
+        channel_count = CH;
     }
 
     nlohmann::json to_json() const override {
@@ -54,10 +57,10 @@ struct GenericMaterial : public IGenericMaterial {
     }
 };
 
-template <MaterialModel model_t>
-inline std::unique_ptr<GenericMaterial<model_t>> material_from_json(
+template <MaterialModel model_t,size_t channel_count>
+inline std::unique_ptr<GenericMaterial<model_t,channel_count>> material_from_json(
     const nlohmann::json& j) {
-    auto out = std::make_unique<GenericMaterial<model_t>>();
+    auto out = std::make_unique<GenericMaterial<model_t,channel_count>>();
     for (auto i = 0u; i < out->data_rgb.size(); ++i) {
         const nlohmann::json& mj = j.at("material_data")[i];
         if constexpr (model_t == MaterialModel::Lambert) {
@@ -73,6 +76,8 @@ inline std::unique_ptr<GenericMaterial<model_t>> material_from_json(
                     out->data_rgb[i].Ks = mj.at("Ks").get<double>();
                     out->data_rgb[i].F0 = mj.at("F0").get<double>();
                     out->data_rgb[i].m = mj.at("m").get<double>();
+                } else {
+                    throw std::runtime_error("cannot serialize nomaterial");
                 }
             }
         }
@@ -83,18 +88,37 @@ inline std::unique_ptr<GenericMaterial<model_t>> material_from_json(
 inline std::unique_ptr<IGenericMaterial> generic_material_from_json(
     const nlohmann::json& j) {
     std::unique_ptr<IGenericMaterial> mat;
-    switch (MaterialModel(j["material_model"].get<int>())) {
-        case MaterialModel::Lambert:
-            mat = material_from_json<MaterialModel::Lambert>(j);
-            break;
-        case MaterialModel::BlinPhong:
-            mat = material_from_json<MaterialModel::BlinPhong>(j);
-            break;
-        case MaterialModel::CookTorrance:
-            mat = material_from_json<MaterialModel::CookTorrance>(j);
-            break;
-        default:
-            break;
+    size_t channel_count = j.at("material_data").size();
+    if(channel_count == 1){
+        switch (MaterialModel(j["material_model"].get<int>())) {
+            case MaterialModel::Lambert:
+                mat = material_from_json<MaterialModel::Lambert,1>(j);
+                break;
+            case MaterialModel::BlinPhong:
+                mat = material_from_json<MaterialModel::BlinPhong,1>(j);
+                break;
+            case MaterialModel::CookTorrance:
+                mat = material_from_json<MaterialModel::CookTorrance,1>(j);
+                break;
+            default:
+                break;
+        }
+    }else if (channel_count == 3){
+        switch (MaterialModel(j["material_model"].get<int>())) {
+            case MaterialModel::Lambert:
+                mat = material_from_json<MaterialModel::Lambert,3>(j);
+                break;
+            case MaterialModel::BlinPhong:
+                mat = material_from_json<MaterialModel::BlinPhong,3>(j);
+                break;
+            case MaterialModel::CookTorrance:
+                mat = material_from_json<MaterialModel::CookTorrance,3>(j);
+                break;
+            default:
+                break;
+        }
+    }else{
+        throw std::runtime_error("Invalid channel count in general material");
     }
     return mat;
 }

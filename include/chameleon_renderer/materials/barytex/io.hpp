@@ -3,6 +3,7 @@
 #include <chameleon_renderer/materials/barytex/BRDFMeasurement.hpp>
 #include <chameleon_renderer/utils/file_utils.hpp>
 #include <chameleon_renderer/utils/math_io.hpp>
+#include <chameleon_renderer/utils/io.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -37,8 +38,8 @@ void export_measurement_pcd(const fs::path& path,
     for (const auto& hit : hits) {
         if (hit.is_valid) {
             ofs << hit.world_coordinates.x << " " << hit.world_coordinates.y
-                << " " << hit.world_coordinates.z << " " << hit.value.x << " "
-                << hit.value.y << " " << hit.value.z << "\n";
+                << " " << hit.world_coordinates.z << " " << 255*hit.value.x << " "
+                << 255*hit.value.y << " " << 255*hit.value.z << "\n";
         }
     }
 }
@@ -58,24 +59,6 @@ void export_measurement_json(const std::vector<MeasurementHit>& data,
     std::cout << std::endl;
     std::ofstream ofs(path);
     ofs << j;
-}
-
-template<typename T>
-void write_vector_bin(std::ofstream& ofs, const std::vector<T>& vec){
-    size_t count = vec.size();
-    ofs.write(reinterpret_cast<const char*>(&count),sizeof(count));
-    ofs.write(reinterpret_cast<const char*>(vec.data()),
-              sizeof(T) * count);
-}
-
-template<typename T>
-std::vector<T> read_vector_bin(std::ifstream& ifs){
-    size_t num_elements = 0;
-    ifs.read(reinterpret_cast<char*>(&num_elements), sizeof(num_elements));
-    std::vector<T> data(num_elements);
-    ifs.read(reinterpret_cast<char*>(data.data()),
-             sizeof(T) * num_elements);
-    return data;
 }
 
 void export_measurement_bin(const std::vector<MeasurementHit>& data,

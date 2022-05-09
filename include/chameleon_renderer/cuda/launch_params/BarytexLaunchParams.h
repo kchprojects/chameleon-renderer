@@ -30,16 +30,21 @@ namespace barytex_show_render {
 
 struct LaunchParams {
 
-    CUDAArray<MeasurementHit> render_data;
+    struct Layers
+    {
+        uint8_t* mask;
+        glm::vec3* view;
+        vec2i size;
+    };
+    Layers render_data;
 
     // setup data
     CUDACamera camera;
-    CUDAMaterialLookupForest material; 
+    CUDALightArray light_data;
+    CUDAMaterialLookupForest material_forest; 
 
     // optix
     OptixTraversableHandle traversable;
-
-    const int sample_multiplier = 5;
 };
 }  // namespace barycentric_learn_render
 }  // namespace chameleon
