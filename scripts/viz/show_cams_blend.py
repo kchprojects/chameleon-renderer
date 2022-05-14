@@ -50,7 +50,7 @@ def create_setup(setup_name, matrices,lights):
         new_cam = make_camera_object(f"{mat_id}",matrices[mat_id])
         curr_coll.objects.link(new_cam)
         for l in lights:
-            position = np.array([l["position"][x] for x in "xyz"])/4.11
+            position = np.array([l["position"][x] for x in "xyz"])/28
             #m = np.eye(4,dtype=np.float64)
             m=matrices[mat_id]
             lo = make_light_object(position, str(l["id"]), m)

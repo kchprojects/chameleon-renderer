@@ -34,6 +34,7 @@ void from_json(const nlohmann::json& in, MeasurementHit& hit) {
 
 void export_measurement_pcd(const fs::path& path,
                             const std::vector<MeasurementHit>& hits) {
+    fs::create_directories(path.parent_path());
     std::ofstream ofs(path);
     for (const auto& hit : hits) {
         if (hit.is_valid) {
@@ -70,6 +71,7 @@ void export_measurement_bin(const std::vector<MeasurementHit>& data,
 
 void export_isotropic_bin(const std::vector<IsotropicBRDFMeasurement>& data,
                             const fs::path& path) {
+    fs::create_directories(path.parent_path());
     std::ofstream ofs(path, std::ios::binary);
     std::cout << "exporting isotropic to: " << path << std::endl;
     write_vector_bin(ofs,data);    
@@ -78,7 +80,7 @@ void export_isotropic_bin(const std::vector<IsotropicBRDFMeasurement>& data,
 std::vector<IsotropicBRDFMeasurement> import_isotropic_bin(const fs::path& path) {
     std::ifstream ifs(path, std::ios::binary);
     return read_vector_bin<IsotropicBRDFMeasurement>(ifs);    
-}
+}   
 
 std::vector<MeasurementHit> import_measurement_bin(const fs::path& path) {
     std::ifstream ifs(path, std::ios::binary);

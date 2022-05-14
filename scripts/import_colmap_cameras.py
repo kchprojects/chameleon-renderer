@@ -4,6 +4,7 @@ from scipy.spatial.transform import Rotation
 import numpy as np 
 from viz.viz_3d import draw_coordinates
 from matplotlib import pyplot as plt
+from sys import argv
 
 
 def get_intrinsic(cam_info):
@@ -85,7 +86,7 @@ def read_positions(filename):
 fig = plt.figure(figsize=(15,15))
 ax = fig.add_subplot(111, projection='3d')
 
-data_folder = "/home/karelch/Diplomka/dataset_v2/mag_box"
+data_folder = argv[1]
 positions = read_positions(f"{data_folder}/colmap/images.txt")
 cameras = read_cameras(f"{data_folder}/colmap/cameras.txt")
 

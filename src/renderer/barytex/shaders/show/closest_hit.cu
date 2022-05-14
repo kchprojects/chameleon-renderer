@@ -37,9 +37,8 @@ inline __device__ bool is_in_divisor(const CUDAMaterialLookupTree::Divisor& d,
     glm::vec3 base = b_pos - a_pos;
     glm::vec3 c_dir = c_pos - a_pos;
     glm::vec3 p_dir = position - a_pos;
-    return glm::dot(c_dir, base) * glm::dot(p_dir, base) > 0;
+    return glm::dot(glm::cross(c_dir, base), glm::cross(p_dir, base)) > 0;
 }
-
 inline __device__ int find_divisor_id(const CUDAMaterialLookupTree& tree,
                                       const glm::vec3& position) {
     int div_node_id = 0;
@@ -93,11 +92,11 @@ inline __device__ glm::vec3 compute_reflectance(const SurfaceInfo& si,
                     ModelData<MaterialModel::Lambert, double> lamb_model_data;
                     get_lambert_material_data(curr_point.material, channel,
                                               lamb_model_data);
-                    refl[channel] = lamb_model_data.albedo;
-                    // refl[channel] =
-                    //     ModelReflectance<MaterialModel::Lambert,
-                    //                      double>::compute(N, L, E,
-                    //                                       lamb_model_data);
+                    alb[channel] = lamb_model_data.albedo;
+                    refl[channel] =
+                        ModelReflectance<MaterialModel::Lambert,
+                                         double>::compute(N, L, E,
+                                                          lamb_model_data);
                 }
 
                 else if (curr_point.material.model ==
@@ -128,7 +127,7 @@ inline __device__ glm::vec3 compute_reflectance(const SurfaceInfo& si,
             float w = 1.f / max(glm::distance(si.surfPos, curr_point.position),
                                 0.0001f);
             // printf("W: %f\n", w);
-            // printf("%f %f %f\n",alb[0],alb[1],alb[2]);
+            // printf("alb %f %f %f\n",alb[0],alb[1],alb[2]);
             sum_val += refl * w;
             weight_sum += w;
         }
@@ -163,20 +162,17 @@ extern "C" __global__ void __closesthit__radiance() {
         // glm::vec3 to_light = -ray_dir;
         glm::vec3 L = glm::normalize(to_light);
         if(glm::dot(N,L) < 0){
-            prd->value = {255,0,0};
+            prd->value = {0,0,0};
         }
         else if(!cast_shadow_ray(si, L)){
-            prd->value = {0,255,0};
+            prd->value = {0,0,0};
         }
         else{
             float dist_att = distance_attenuation(
                 curr_light.position, optixLaunchParams.camera.pos, si.surfPos);
             float rad_att = radial_attenuation(curr_light, -L);
-            if (rad_att != 0) {
-                printf("rad: %f\n", rad_att);
-            }
 
-            prd->value = prd->value + 255.f * compute_reflectance(si, N, L, E); //*rad_att;  // * inv sq l*/
+            prd->value = prd->value + 255.f * compute_reflectance(si, N, L, E)*rad_att;  // * inv sq l*/
 
             prd->value = max_vec(min_vec(prd->value, 255), 0);
         }

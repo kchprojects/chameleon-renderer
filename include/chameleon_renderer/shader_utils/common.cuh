@@ -60,9 +60,8 @@ inline __device__ glm::vec3 transform_point(const glm::mat4& mat,
     return {vec_4d.x, vec_4d.y, vec_4d.z};
 }
 inline __device__ float distance_attenuation(const glm::vec3& light_position,
-                                      const glm::vec3& camera_position,
-                                      const glm::vec3& object_position) {
-    
+                                             const glm::vec3& camera_position,
+                                             const glm::vec3& object_position) {
     const float distance_factor = 0.001;
     auto l_dist =
         glm::distance(light_position, object_position) * distance_factor;
@@ -71,17 +70,16 @@ inline __device__ float distance_attenuation(const glm::vec3& light_position,
     return 1.f / (pow(l_dist + 1, 2.f) * pow(c_dist + 1, 2.f));
 }
 
-inline __device__ glm::vec3 min_vec(const glm::vec3& v, float val){
-    return {min(v.x,val),min(v.y,val),min(v.z,val)};
+inline __device__ glm::vec3 min_vec(const glm::vec3& v, float val) {
+    return {min(v.x, val), min(v.y, val), min(v.z, val)};
 }
 
-
-inline __device__ glm::vec3 max_vec(const glm::vec3& v, float val){
-    return {max(v.x,val),max(v.y,val),max(v.z,val)};
+inline __device__ glm::vec3 max_vec(const glm::vec3& v, float val) {
+    return {max(v.x, val), max(v.y, val), max(v.z, val)};
 }
 
 inline __device__ float radial_attenuation(const CUDALight& light,
-                                    const glm::vec3& L) {
+                                           const glm::vec3& L) {
     if (light.l_type != LightType::LED_LIGHT) {
         return 1;
     }
@@ -93,10 +91,11 @@ inline __device__ float radial_attenuation(const CUDALight& light,
     }
     float angle = acos(dp);
     float angle_deg = 180.f * angle / M_PI;
-    int desc_angle = int(angle_deg+0.5f);
-    // printf("desc %d\n",desc_angle);
-    return light.radial_attenuation.data[desc_angle];
+    int desc_angle = int(angle_deg + 0.5f);
+    // printf("desc %d rad: %f\n ", desc_angle,
+    //    light.radial_attenuation.data[desc_angle]);
 
+    return light.radial_attenuation.data[desc_angle];
 }
 
 inline __device__ void print_mat(const glm::mat4& mat) {

@@ -23,6 +23,7 @@ CUDALightArray PhotometryCamera::get_cuda_light_array() {
     }
     if(light_buff.d_ptr != nullptr){
         light_buff.free();
+        
     }
     light_buff.alloc_and_upload(cuda_lights);
     return {(CUDALight*)light_buff.d_ptr, cuda_lights.size()};

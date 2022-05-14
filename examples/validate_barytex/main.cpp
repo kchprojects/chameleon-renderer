@@ -96,27 +96,34 @@ struct Args {
     // fs::path views_path =
     //     "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
 
-    fs::path data_path = "/home/karelch/Diplomka/dataset_v2/mag_box/";
+    fs::path data_path;
     fs::path lights_path =
         "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
         "chameleon/lights.json";
     std::string extension = ".png";
-    fs::path obj_path =
-        "/home/karelch/Diplomka/dataset_v2/mag_box/reconstructed.obj";
+    fs::path obj_path;
 
-    fs::path views_path =
-        "/home/karelch/Diplomka/dataset_v2/mag_box/cameras.json";
-    std::string res_dir = "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box";
+    fs::path views_path;
+
+    fs::path res_dir;
 
                           Args() = default;
     Args(int argc, char** argv) {
-        if (argc > 1) {
-            data_path = argv[1];
-            obj_path = data_path / "reconstruction.obj";
-            views_path = data_path / "cameras.json";
-        }
         if (argc > 2) {
-            lights_path = argv[2];
+            data_path = argv[1];
+            obj_path = data_path/"reconstruction.obj";
+            std::cout<< "Object: " << obj_path.string()<<std::endl;
+            std::string extension = ".png";
+            views_path =data_path/"cameras.json";
+            std::cout<< "Views: " << views_path.string()<<std::endl;
+
+            res_dir = argv[2];
+            fs::create_directories(res_dir);
+
+
+        }
+        else{
+            throw std::invalid_argument("parameters [data_folder] [result_folder] ");
         }
     }
 };
@@ -208,7 +215,7 @@ extern "C" int main(int argc, char** argv) {
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
     std::vector<IsotropicBRDFMeasurement> all_mes;
     // should be 50
-    for (int position = 0; position < 50; position += 10) {
+    for (int position = 0; position < 50; position += 5) {
         std::string cam_label = std::to_string(position) + args.extension;
         std::cout << "++++++++++++" << position << std::endl;
         // should be to 127
@@ -235,13 +242,15 @@ extern "C" int main(int argc, char** argv) {
                 if (m.is_valid &&
                     !(m.value.x == 0 && m.value.y == 0 && m.value.z == 0)) {
                     all_mes.emplace_back(m);
+                    ++counter;
                 }
             }
+            std::cout<<"Added: "<<counter<<" measurements"<<std::endl;
             // export_measurement(mes, "mes.json",true);
             // mes = import_measurement("mes.json");
 
             export_measurement_pcd(
-                args.res_dir + "/pcd/" + std::to_string(light_id) + ".txt",
+                args.res_dir / "pcd" / (std::to_string(light_id) + ".txt"),
                 mes);
         }
         // break;
@@ -258,7 +267,7 @@ extern "C" int main(int argc, char** argv) {
         // }
         // break;
     }
-    export_isotropic_bin(all_mes, args.res_dir + "/test_mes.isobrdf");
+    export_isotropic_bin(all_mes, args.res_dir / "test_mes.isobrdf");
     return 0;
 }  // namespace chameleon
 

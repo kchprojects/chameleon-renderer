@@ -85,6 +85,7 @@ std::map<int, eigen_utils::Mat4<float>> load_mats(
 }
 
 struct Args {
+
     // fs::path data_path = "/home/karelch/Diplomka/dataset_v1/fi_rock/";
     // fs::path lights_path =
     //     "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
@@ -92,48 +93,39 @@ struct Args {
     // std::string extension = ".png";
     // fs::path obj_path =
     //     "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
+    //     fs::path measurements_path =
+    //     "/home/karelch/Diplomka/rendering/chameleon-renderer/results/fi_rock/test_mes.isobrdf";
 
     // fs::path views_path =
     //     "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
-
-    // fs::path measurements_path =
-    //     "/home/karelch/Diplomka/rendering/chameleon-renderer/examples/"
-    //     "validate_solver/mesurements/fi_roc_mes_att_test.isobrdf";
-    // fs::path data_path = "/home/karelch/Diplomka/dataset_v1/fi_rock/";
-    // fs::path lights_path =
-    //     "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
-    //     "chameleon/lights.json";
-    // std::string extension = ".png";
-    // fs::path obj_path =
-    //     "/home/karelch/Diplomka/dataset_v1/fi_rock/reconstruction.obj";
-
-    // fs::path views_path =
-    //     "/home/karelch/Diplomka/dataset_v1/fi_rock/cameras.json";
-
+    // fs::path res_dir = "/home/karelch/Diplomka/rendering/chameleon-renderer/results/fi_rock";
     fs::path data_path = "/home/karelch/Diplomka/dataset_v2/mag_box/";
     fs::path lights_path =
         "/home/karelch/Diplomka/rendering/chameleon-renderer/resources/setups/"
         "chameleon/lights.json";
     std::string extension = ".png";
-    fs::path obj_path =
-        "/home/karelch/Diplomka/dataset_v2/mag_box/reconstructed.obj";
-    
-    fs::path measurements_path =
-        "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box/mag_box_mes.isobrdf";
-
-    fs::path views_path =
-        "/home/karelch/Diplomka/dataset_v2/mag_box/cameras.json";
-    fs::path res_dir = "/home/karelch/Diplomka/rendering/chameleon-renderer/results/mag_box";
-
+    fs::path obj_path;
+    fs::path views_path;
+    fs::path forest_path;
+    fs::path result_path;
     Args() = default;
     Args(int argc, char** argv) {
-        if (argc > 1) {
+        if (argc > 3) {
             data_path = argv[1];
-            obj_path = data_path / "reconstruction.obj";
-            views_path = data_path / "cameras.json";
+            obj_path = data_path/"reconstruction.obj";
+            std::cout<< "Object: " << obj_path.string()<<std::endl;
+            std::string extension = ".png";
+            views_path =data_path/"cameras.json";
+            std::cout<< "Views: " << views_path.string()<<std::endl;
+
+            forest_path = argv[2];
+            std::cout<< "Forest: " << forest_path.string()<<std::endl;
+            result_path = argv[3];
+            std::cout<< "Results: " << result_path.string()<<std::endl;
+
         }
-        if (argc > 2) {
-            lights_path = argv[2];
+        else{
+            throw std::invalid_argument("parameters [data_folder] [forest_path] ");
         }
     }
 };
@@ -225,15 +217,15 @@ extern "C" int main(int argc, char** argv) {
     // compute_model_gs<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_gs.lamb_forest");
     // compute_model<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_col.lamb_forest");
     // compute_model<MaterialModel::BlinPhong>(gm, 0.01).serialize_bin(args.res_dir / "test_col.bp_forest");
-    // compute_model<MaterialModel::Lambert>(gm, 0.01).serialize_bin(args.res_dir / "test_col.ct_forest");
+    // compute_model<MaterialModel::CookTorrance>(gm, 0.01).serialize_bin(args.res_dir / "test_col.ct_forest");
     // auto blin_forest = compute_model<MaterialModel::CookTorrance>(gm, 0.01);
     // blin_forest.serialize_bin("test_ser_mesh.ct_forest");
     // MaterialLookupForest blin_forest;
     // blin_forest.load_bin("test_ser_att.ctor_forest");
 
-    MaterialLookupForest lamb_forest;
-    lamb_forest.load_bin(args.res_dir / "test_col.lamb_forest");
-    renderer.setup_material(lamb_forest);
+    MaterialLookupForest forest;
+    forest.load_bin(args.forest_path);
+    renderer.setup_material(forest);
     PING;
 
     // // cv::Mat out;
@@ -242,9 +234,10 @@ extern "C" int main(int argc, char** argv) {
     bool should_end = false;
     std::vector<int> light_ids = {4};
     // for (auto& [cam_label, camera] : renderer.photometry_cameras) {
-    for (int position = 0; position < 50; ++position) {
+    for (int position = 1; position < 40; position+=5) {
         std::string cam_label = std::to_string(position) + args.extension;
 
+        fs::create_directories(args.result_path/std::to_string(position));
         // should be to 127
         for (int light_id = 0; light_id < 70; ++light_id) {
             // for (int light_id : light_ids) {
@@ -256,10 +249,11 @@ extern "C" int main(int argc, char** argv) {
                 view.convertTo(view,CV_8UC1);
                 cv::cvtColor(view,view,cv::COLOR_RGB2BGR);
                 cv::Mat1b mask = out.mask.get_cv_mat();
-                // cv::imwrite("views/" + std::to_string(position) + "_" + std::to_string(light_id) + ".png", view);
-                cv::imshow("view", view);
+                cv::imwrite((args.result_path/std::to_string(position)/(std::to_string(light_id) + ".png")).string(), view);
+                cv::imwrite((args.result_path/std::to_string(position)/(std::to_string(light_id) + "_mask.png")).string(), mask);
+                // cv::imshow("view", view);
                 // cv::imshow("mask", mask);
-                cv::waitKey();
+                // cv::waitKey();
                 // break;
             }
         }

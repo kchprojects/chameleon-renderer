@@ -35,7 +35,8 @@ inline MaterialLookupForest compute_model(const GeneralMeasurement& measurement,
         new_tree.divisors = tree.divisors;
         new_tree.measurement_points.reserve(tree.measurement_points.size());
         for (const auto& point : tree.measurement_points) {
-            new_tree.measurement_points.push_back({nullptr, point.position, true});
+            new_tree.measurement_points.push_back(
+                {nullptr, point.position, true});
         }
     }
 
@@ -43,7 +44,7 @@ inline MaterialLookupForest compute_model(const GeneralMeasurement& measurement,
     for (auto triangle_id = 0u; triangle_id < out.trees.size(); ++triangle_id) {
         std::cout << triangle_id * 100.0 / out.trees.size()
                   << "%                 \r" << std::flush;
-        std::unordered_set<int> valid_triangles = {};
+        std::unordered_set<int> valid_triangles = {int(triangle_id)};
         for (int vertex_id :
              measurement._mesh.faces[triangle_id].vert_indices) {
             for (int neighbour_id :
@@ -68,12 +69,19 @@ inline MaterialLookupForest compute_model(const GeneralMeasurement& measurement,
                     // // print_vec(mes.world_coordinates,"mes");
                     if (distance <= max_distance &&
                         (mes.value.x != 0 && mes.value.y != 0 &&
-                         mes.value.z != 0) && mes.light().z > 0.001 && mes.eye().z > 0.001) {
-                        
+                         mes.value.z != 0) &&
+                        mes.light().z > 0.001 && mes.eye().z > 0.001) {
                         // print_vec(mes.value,"mes");
                         valid_measurements[distance].push_back(mes);
                         ++observation_count;
-                    }
+                    } 
+                    // else {
+                    //     std::cout << distance << ", mx:" << mes.value.x
+                    //               << ", my: " << mes.value.y
+                    //               << ", mz: " << mes.value.z
+                    //               << ", l_z: " << mes.light().z
+                    //               << ", e_z: " << mes.eye().z << std::endl;
+                    // }
                 }
             }
             if (observation_count > 5) {
@@ -93,19 +101,20 @@ inline MaterialLookupForest compute_model(const GeneralMeasurement& measurement,
                 if (std::isnan(solver.res_data[0].albedo) ||
                     std::isnan(solver.res_data[1].albedo) ||
                     std::isnan(solver.res_data[2].albedo)) {
+                    std::cout << "mat is none" << std::endl;
                     mes_point.material = nullptr;
                 } else {
-                    // std::cout<<"making_mat: " << solver.res_data[0].albedo <<
-                    // ", "<< solver.res_data[1].albedo << ", " <<
-                    // solver.res_data[2].albedo<<std::endl;
+                    // std::cout << "making_mat: " << solver.res_data[0].albedo
+                    //           << ", " << solver.res_data[1].albedo << ", "
+                            //   << solver.res_data[2].albedo << std::endl;
                     mes_point.material =
                         std::make_unique<GenericMaterial<model_t>>(
                             solver.res_data);
                 }
             }
-            // else{
-            //     std::cout<<"cannot solve from: " << observation_count << "
-            //     observations"<<std::endl;
+            //  else {
+            //     std::cout << "cannot solve from: " << observation_count
+            //               << " observations" << std::endl;
             // }
         }
     }
@@ -113,9 +122,9 @@ inline MaterialLookupForest compute_model(const GeneralMeasurement& measurement,
 }
 
 template <MaterialModel model_t>
-inline MaterialLookupForest compute_model_gs(const GeneralMeasurement& measurement,
-                                          float max_distance = 10000,
-                                          int max_mes_count = 100) {
+inline MaterialLookupForest compute_model_gs(
+    const GeneralMeasurement& measurement, float max_distance = 10000,
+    int max_mes_count = 100) {
     static const float distance_to_unity = 0.001;
     MaterialLookupForest out;
     out.trees.reserve(measurement.lookup_forest.trees.size());
@@ -126,7 +135,8 @@ inline MaterialLookupForest compute_model_gs(const GeneralMeasurement& measureme
         new_tree.divisors = tree.divisors;
         new_tree.measurement_points.reserve(tree.measurement_points.size());
         for (const auto& point : tree.measurement_points) {
-            new_tree.measurement_points.push_back({nullptr, point.position, true});
+            new_tree.measurement_points.push_back(
+                {nullptr, point.position, true});
         }
     }
 
@@ -159,8 +169,8 @@ inline MaterialLookupForest compute_model_gs(const GeneralMeasurement& measureme
                     // // print_vec(mes.world_coordinates,"mes");
                     if (distance <= max_distance &&
                         (mes.value.x != 0 && mes.value.y != 0 &&
-                         mes.value.z != 0) && mes.light().z > 0.001 && mes.eye().z > 0.001) {
-                        
+                         mes.value.z != 0) &&
+                        mes.light().z > 0.001 && mes.eye().z > 0.001) {
                         // print_vec(mes.value,"mes");
                         valid_measurements[distance].push_back(mes);
                         ++observation_count;
@@ -188,7 +198,7 @@ inline MaterialLookupForest compute_model_gs(const GeneralMeasurement& measureme
                     // ", "<< solver.res_data[1].albedo << ", " <<
                     // solver.res_data[2].albedo<<std::endl;
                     mes_point.material =
-                        std::make_unique<GenericMaterial<model_t,1>>(
+                        std::make_unique<GenericMaterial<model_t, 1>>(
                             solver.res_data);
                 }
             }
